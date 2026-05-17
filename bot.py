@@ -378,15 +378,26 @@ def main():
             minute=minute,
             timezone=timezone
         )
+        def main():
 
-       scheduler.start()
+    updater = Updater(TOKEN, use_context=True)
+
+    dp = updater.dispatcher
+
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CallbackQueryHandler(button))
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
+
+    scheduler = BackgroundScheduler(timezone=timezone)
+
+    scheduler.start()
 
     print("🔥 VIP TEHELKA BOT STARTED 🔥")
 
     updater.start_polling(drop_pending_updates=True)
 
     updater.idle()
-# ===================================
+
 
 if __name__ == "__main__":
     main()

@@ -379,13 +379,13 @@ def main():
             timezone=timezone
         )
 
-    scheduler.start()
+       scheduler.start()
 
-  print("🔥 VIP TEHELKA BOT STARTED 🔥")
+    print("🔥 VIP TEHELKA BOT STARTED 🔥")
 
-updater.start_polling(drop_pending_updates=True)
+    updater.start_polling(drop_pending_updates=True)
 
-updater.idle()
+    updater.idle()
 # ===================================
 
 if __name__ == "__main__":

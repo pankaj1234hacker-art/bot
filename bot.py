@@ -2,128 +2,178 @@ import os
 os.environ["http_proxy"] = ""
 os.environ["https_proxy"] = ""
 
-import random
-import time
-import threading
-import requests
+import logging
+import pytz
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
     Updater,
     CommandHandler,
     CallbackQueryHandler,
     MessageHandler,
-    Filters
+    Filters,
+    CallbackContext,
 )
 
-# ==================================================
-# 🔥 VIP TEHELKA BOT CONFIG 🔥
-# ==================================================
+from apscheduler.schedulers.background import BackgroundScheduler
 
-TOKEN = "8775211756:AAElPVrt88CwAU16JdUa36m51Y8DOehAZ5M"
+# ===================================
+# 🔥 CHANGE THESE ONLY 🔥
+# ===================================
 
-CHANNEL_ID = "@TEHELKA_VIP_KING"
+TOKEN = "8775211756:AAFfKcYQKHJdQ_jyF-XQFvCx5dXfuCHrrLs"
 
-REGISTER_LINK = "https://13lwin6.com/register?inviteCode=C6APK4N&from=web"
+CHANNEL_ID = "@your_channel_username"
 
-CONTACT_USERNAME = "@Next_level_user"
+REGISTRATION_LINK = "https://13lwin6.com/register?inviteCode=C6APK4N&from=web"
 
-# ==================================================
-# GLOBAL VARIABLES
-# ==================================================
+CHANNEL_LINK = "https://t.me/your_channel_username"
 
-user_waiting = {}
+SUPPORT_LINK = "https://t.me/your_support_username"
 
-last_period = "***"
+# ===================================
 
-# ==================================================
-# 🔥 PREDICTION SYSTEM
-# ==================================================
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 
-def get_prediction():
+logger = logging.getLogger(__name__)
 
-    result_type = random.choice([
-        "BIG 🔴",
-        "SMALL 🔵"
-    ])
+user_numbers = {}
+verified_users = set()
 
-    if result_type == "BIG 🔴":
-        numbers = random.sample(range(5, 10), 2)
+timezone = pytz.timezone("Asia/Dhaka")
 
-    else:
-        numbers = random.sample(range(0, 5), 2)
+# ===================================
+# START
+# ===================================
 
-    accuracy = round(random.uniform(91, 99), 1)
-
-    return result_type, numbers, accuracy
-
-# ==================================================
-# 🔥 START MESSAGE
-# ==================================================
-
-def start(update, context):
+def start(update: Update, context: CallbackContext):
 
     keyboard = [
-
-        [
-            InlineKeyboardButton(
-                "💎 VIP REGISTER",
-                url=REGISTER_LINK
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "📢 VIP CHANNEL",
-                url="https://t.me/vip_number_shot_official"
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "🎯 GET VIP PREDICTION",
-                callback_data='vip_pred'
-            )
-        ]
+        [InlineKeyboardButton("💎 VIP REGISTRATION 💎", url=REGISTRATION_LINK)],
+        [InlineKeyboardButton("📢 JOIN VIP CHANNEL 📢", url=CHANNEL_LINK)],
+        [InlineKeyboardButton("✅ I HAVE REGISTERED ✅", callback_data="registered")]
     ]
 
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    text = """
+╔════💎 VIP TEHELKA 💎════╗
+
+🔥 MOST POWERFUL WINGO 1MIN PREDICTION 🔥
+
+📈 Premium VIP Signals
+🎯 Safe Number Access
+⚡ Fast Winning Updates
+🔐 VIP Member Verification
+
+━━━━━━━━━━━━━━━━
+
+🚨 COMPLETE REGISTRATION FIRST 🚨
+"""
 
     update.message.reply_text(
-
-f"""
-╔══════════════════╗
- 💎 VIP TEHELKA BOT 💎
-╚══════════════════╝
-
-🎮 WinGo 1 Minute Game
-
-━━━━━━━━━━━━━━━━━━
-
-🔥 Welcome VIP Member
-
-✅ Join VIP Official Channel
-✅ Complete VIP Registration
-✅ Get Premium Prediction
-
-━━━━━━━━━━━━━━━━━━
-
-🔥 Registration Link 👇
-
-{REGISTER_LINK}
-
-━━━━━━━━━━━━━━━━━━
-
-📞 For Any Problem Contact Here 👇
-
-{CONTACT_USERNAME}
-
-━━━━━━━━━━━━━━━━━━
-""",
-
-        reply_markup=reply_markup
+        text,
+        reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
+# ===================================
+# BUTTON
+# ===================================
+
+def button(update: Update, context: CallbackContext):
+
+    query = update.callback_query
+    query.answer()
+
+    if query.data == "registered":
+
+        context.user_data["waiting_uid"] = True
+
+        query.message.reply_text(
+            """
+🔐 VIP VERIFICATION REQUIRED 🔐
+
+📌 Send Your Game UID Number
+
+━━━━━━━━━━━━━━━━
+
+⚡ After Verification
+VIP Prediction Access Will Be Activated
+"""
+        )
+
+    elif query.data == "prediction":
+
+        query.message.reply_text(
+            "📩 Send Any 3 Digit Number"
+        )
+
+# ===================================
+# MESSAGE
+# ===================================
+
+def handle_message(update: Update, context: CallbackContext):
+
+    user_id = update.message.from_user.id
+    text = update.message.text.strip()
+
+    # UID VERIFY
+    if context.user_data.get("waiting_uid"):
+
+        verified_users.add(user_id)
+
+        context.user_data["waiting_uid"] = False
+
+        keyboard = [
+            [InlineKeyboardButton("🎯 GET VIP PREDICTION 🎯", callback_data="prediction")],
+            [InlineKeyboardButton("💎 VIP REGISTRATION 💎", url=REGISTRATION_LINK)],
+            [InlineKeyboardButton("🚀 JOIN VIP CHANNEL 🚀", url=CHANNEL_LINK)],
+            [InlineKeyboardButton("📞 CONTACT SUPPORT 📞", url=SUPPORT_LINK)]
+        ]
+
+        update.message.reply_text(
+            """
+🎉 VIP VERIFICATION SUCCESSFUL 🎉
+
+╔════ ACCESS GRANTED ════╗
+
+🔥 VIP Prediction Activated
+🔥 Wingo 1Min Access Enabled
+🔥 Premium Support Enabled
+
+━━━━━━━━━━━━━━━━
+
+💎 WELCOME TO VIP TEHELKA 💎
+""",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+
+        return
+
+    # SAVE NUMBER
+    if user_id in verified_users:
+
+        if text.isdigit() and len(text) == 3:
+
+            user_numbers[user_id] = text
+
+            keyboard = [
+                [InlineKeyboardButton("💎 VIP REGISTRATION 💎", url=REGISTRATION_LINK)],
+                [InlineKeyboardButton("🚀 JOIN VIP CHANNEL 🚀", url=CHANNEL_LINK)],
+                [InlineKeyboardButton("📞 CONTACT SUPPORT 📞", url=SUPPORT_LINK)]
+            ]
+
+            update.message.reply_text(
+                f"✅ VIP Number Saved: {text}",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+
+        else:
+
+            update.message.reply_text(
+                "❌ Send Only 3 Digit Number Example: 395"
+            )
 # ==================================================
 # 🔥 BUTTON CLICK
 # ==================================================
@@ -152,7 +202,6 @@ def button(update, context):
 📥 Enter Last 3 Digit
 
 Example: 123
-
 ━━━━━━━━━━━━━━━━━━
 """
         )
@@ -182,33 +231,7 @@ def handle_message(update, context):
         last_period = text
 
         update.message.reply_text(
-
-"""
-🔍 Analysing Market...
-
-⏳ Fetching VIP Signal...
-"""
-        )
-
-        time.sleep(2)
-
-        user_waiting[user_id] = False
-
-        result, numbers, accuracy = get_prediction()
-
-        keyboard = [
-
-            [
-                InlineKeyboardButton(
-                    "🔄 GET PREDICTION AGAIN",
-                    callback_data='vip_pred'
-                )
-            ]
-        ]
-
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
-        update.message.reply_text(
+      update.message.reply_text(
 
 f"""
 ━━━━━━━━━━━━━━━━━━
@@ -232,7 +255,6 @@ f"""
 ━━━━━━━━━━━━━━━━━━
 
 🔥 Registration Link Click Here 🔥
-
 {REGISTER_LINK}
 
 ━━━━━━━━━━━━━━━━━━
@@ -244,257 +266,218 @@ f"""
 ━━━━━━━━━━━━━━━━━━
 """,
 
-            reply_markup=reply_markup
-        )
+# ===================================
+# SEND PREDICTION
+# ===================================
 
-# ==================================================
-# 🔥 AUTO CHANNEL POST
-# ==================================================
+def send_prediction(bot):
 
-def auto_post():
+    if not user_numbers:
+        return
 
-    posted_times = []
+    latest_number = list(user_numbers.values())[-1]
 
-    while True:
+    formatted = " • ".join(latest_number)
 
-        current_time = time.strftime("%H:%M")
+    keyboard = [
+        [InlineKeyboardButton("💎 VIP REGISTRATION 💎", url=REGISTRATION_LINK)],
+        [InlineKeyboardButton("🚀 JOIN VIP CHANNEL 🚀", url=CHANNEL_LINK)],
+        [InlineKeyboardButton("📞 CONTACT SUPPORT 📞", url=SUPPORT_LINK)]
+    ]
 
-        # ==================================================
-        # 🔥 10 MIN BEFORE ALERT
-        # ==================================================
+    text = f"""
+╔════💎 VIP TEHELKA 💎════╗
 
-        alert_times = {
+🕒 PERIOD: ***
+🎯 SAFE NUMBER: {formatted}
 
-            "09:50": "10:00",
-            "11:50": "12:00",
-            "03:50": "04:00",
-            "07:50": "08:00"
-        }
+📈 ACCURACY: 95.87%
 
-        if current_time in alert_times and current_time not in posted_times:
+━━━━━━━━━━━━━━━━
 
-            start_time = alert_times[current_time]
-
-            alert_message = f"""
-╔══════════════════╗
- 🚨 VIP TEHELKA ALERT 🚨
-╚══════════════════╝
-
-🎮 WinGo 1 Minute Game
-
-━━━━━━━━━━━━━━━━━━
-
-🔥 VIP Prediction Session
-Is About To Start 🔥
-
-⏰ Starting Time: {start_time}
-
-━━━━━━━━━━━━━━━━━━
-
-⚡ Get Ready VIP Members
-🎯 High Accuracy Signal Incoming
-
-━━━━━━━━━━━━━━━━━━
-
-🔥 Registration Link 👇
-
-{REGISTER_LINK}
-
-━━━━━━━━━━━━━━━━━━
-
-📞 Contact Support 👇
-
-{CONTACT_USERNAME}
-
-━━━━━━━━━━━━━━━━━━
+🔥 WINGO 1MIN GAME 🔥
 """
 
-            url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    bot.send_message(
+        chat_id=CHANNEL_ID,
+        text=text,
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
-            data = {
-                "chat_id": CHANNEL_ID,
-                "text": alert_message
-            }
+# ===================================
+# ALERTS
+# ===================================
 
-            requests.post(url, data=data)
+def send_10min_alert(bot):
 
-            posted_times.append(current_time)
+    text = """
+🚨 ATTENTION VIP MEMBERS 🚨
 
-        # ==================================================
-        # 🔥 1 MIN BEFORE ALERT
-        # ==================================================
+🔥 BIG WINGO 1MIN PREDICTION
+WILL START IN 10 MINUTES 🔥
 
-        final_alert_times = {
+⚡ Stay Ready
+⚡ Don’t Miss The Entry
 
-            "09:59": "10:00",
-            "11:59": "12:00",
-            "03:59": "04:00",
-            "07:59": "08:00"
-        }
+━━━━━━━━━━━━━━━━
 
-        if current_time in final_alert_times and current_time not in posted_times:
-
-            start_time = final_alert_times[current_time]
-
-            final_message = f"""
-╔══════════════════╗
- ⚡ FINAL VIP ALERT ⚡
-╚══════════════════╝
-
-🎮 WinGo 1 Minute Game
-
-━━━━━━━━━━━━━━━━━━
-
-🚨 Prediction Starting In 1 Minute 🚨
-
-⏰ Prediction Time: {start_time}
-
-━━━━━━━━━━━━━━━━━━
-
-💎 VIP Signal Ready
-🎯 Market Analysis Completed
-🔥 Big Winning Session Incoming
-
-━━━━━━━━━━━━━━━━━━
-
-🔥 Registration Link 👇
-
-{REGISTER_LINK}
-
-━━━━━━━━━━━━━━━━━━
-
-📞 Contact Support 👇
-
-{CONTACT_USERNAME}
-
-━━━━━━━━━━━━━━━━━━
+💎 VIP TEHELKA 💎
 """
 
-            url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    bot.send_message(chat_id=CHANNEL_ID, text=text)
 
-            data = {
-                "chat_id": CHANNEL_ID,
-                "text": final_message
-            }
+def send_1min_alert(bot):
 
-            requests.post(url, data=data)
+    text = """
+⏰ FINAL ALERT ⏰
 
-            posted_times.append(current_time)
+🔥 VIP WINGO 1MIN PREDICTION
+STARTING IN 1 MINUTE 🔥
 
-        # ==================================================
-        # 🔥 PREDICTION TIMES
-        # ==================================================
+📌 Get Ready For Entry
+📌 Prediction About To Drop
 
-        valid_times = []
+━━━━━━━━━━━━━━━━
 
-        # 10:00 → 10:10
-        for i in range(0, 11):
-            valid_times.append(f"10:{i:02}")
-
-        # 12:00 → 12:10
-        for i in range(0, 11):
-            valid_times.append(f"12:{i:02}")
-
-        # 04:00 → 04:10
-        for i in range(0, 11):
-            valid_times.append(f"04:{i:02}")
-
-        # 08:00 → 08:10
-        for i in range(0, 11):
-            valid_times.append(f"08:{i:02}")
-
-        if current_time in valid_times and current_time not in posted_times:
-
-            result, numbers, accuracy = get_prediction()
-
-            prediction_message = f"""
-━━━━━━━━━━━━━━━━━━
-💎 VIP TEHELKA PREDICTION 💎
-━━━━━━━━━━━━━━━━━━
-
-🎮 WinGo 1 Minute Game
-
-🎲 Period Number: ***
-
-━━━━━━━━━━━━━━━━━━
-
-🎯 Prediction:
-{result}
-
-🔢 Safe Numbers:
-{numbers[0]} • {numbers[1]}
-
-📈 Accuracy: {accuracy}%
-
-━━━━━━━━━━━━━━━━━━
-
-🔥 Registration Link 👇
-
-{REGISTER_LINK}
-
-━━━━━━━━━━━━━━━━━━
-
-📞 For Any Problem Contact Here 👇
-
-{CONTACT_USERNAME}
-
-━━━━━━━━━━━━━━━━━━
+💎 VIP TEHELKA 💎
 """
 
-            url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    bot.send_message(chat_id=CHANNEL_ID, text=text)
 
-            data = {
-                "chat_id": CHANNEL_ID,
-                "text": prediction_message
-            }
-
-            requests.post(url, data=data)
-
-            posted_times.append(current_time)
-
-        time.sleep(5)
-
-# ==================================================
-# 🔥 MAIN FUNCTION
-# ==================================================
+# ===================================
+# MAIN
+# ===================================
 
 def main():
 
-    request_kwargs = {
-        'proxy_url': None
-    }
-
-    updater = Updater(
-        TOKEN,
-        request_kwargs=request_kwargs
-    )
+    updater = Updater(TOKEN, use_context=True)
 
     dp = updater.dispatcher
 
     dp.add_handler(CommandHandler("start", start))
-
     dp.add_handler(CallbackQueryHandler(button))
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
 
-    dp.add_handler(
+    scheduler = BackgroundScheduler(timezone=timezone)
 
-        MessageHandler(
-            Filters.text & ~Filters.command,
-            handle_message
-        )
+    # ==========================
+    # 10 MIN ALERTS
+    # ==========================
+
+    scheduler.add_job(
+        lambda: send_10min_alert(updater.bot),
+        'cron',
+        hour=9,
+        minute=50,
+        timezone=timezone
     )
 
-    threading.Thread(
-        target=auto_post,
-        daemon=True
-    ).start()
+    scheduler.add_job(
+        lambda: send_10min_alert(updater.bot),
+        'cron',
+        hour=11,
+        minute=50,
+        timezone=timezone
+    )
+
+    scheduler.add_job(
+        lambda: send_10min_alert(updater.bot),
+        'cron',
+        hour=15,
+        minute=50,
+        timezone=timezone
+    )
+
+    scheduler.add_job(
+        lambda: send_10min_alert(updater.bot),
+        'cron',
+        hour=19,
+        minute=50,
+        timezone=timezone
+    )
+
+    # ==========================
+    # 1 MIN ALERTS
+    # ==========================
+
+    scheduler.add_job(
+        lambda: send_1min_alert(updater.bot),
+        'cron',
+        hour=9,
+        minute=59,
+        timezone=timezone
+    )
+
+    scheduler.add_job(
+        lambda: send_1min_alert(updater.bot),
+        'cron',
+        hour=11,
+        minute=59,
+        timezone=timezone
+    )
+
+    scheduler.add_job(
+        lambda: send_1min_alert(updater.bot),
+        'cron',
+        hour=15,
+        minute=59,
+        timezone=timezone
+    )
+
+    scheduler.add_job(
+        lambda: send_1min_alert(updater.bot),
+        'cron',
+        hour=19,
+        minute=59,
+        timezone=timezone
+    )
+
+    # ==========================
+    # AUTO POSTS
+    # ==========================
+
+    for minute in range(0, 11):
+
+        scheduler.add_job(
+            lambda: send_prediction(updater.bot),
+            'cron',
+            hour=10,
+            minute=minute,
+            timezone=timezone
+        )
+
+        scheduler.add_job(
+            lambda: send_prediction(updater.bot),
+            'cron',
+            hour=12,
+            minute=minute,
+            timezone=timezone
+        )
+
+        scheduler.add_job(
+            lambda: send_prediction(updater.bot),
+            'cron',
+            hour=16,
+            minute=minute,
+            timezone=timezone
+        )
+
+        scheduler.add_job(
+            lambda: send_prediction(updater.bot),
+            'cron',
+            hour=20,
+            minute=minute,
+            timezone=timezone
+        )
+
+    scheduler.start()
+
+    print("🔥 VIP TEHELKA BOT STARTED 🔥")
 
     updater.start_polling()
-
     updater.idle()
 
-# ==================================================
-# 🔥 RUN BOT
-# ==================================================
+# ===================================
 
 if __name__ == "__main__":
     main()

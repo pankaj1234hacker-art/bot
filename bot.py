@@ -17,21 +17,21 @@ from telegram.ext import (
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
-# ===================================
-# 🔥 CHANGE THESE ONLY 🔥
-# ===================================
+# =========================================
+# ONLY ADD YOUR BOT TOKEN
+# =========================================
 
 TOKEN = "8775211756:AAFfKcYQKHJdQ_jyF-XQFvCx5dXfuCHrrLs"
 
-CHANNEL_ID = "@https://t.me/TEHELKA_VIP_KING"
+CHANNEL_ID = "@TEHELKA_VIP_KING"
 
 REGISTRATION_LINK = "https://13lwin6.com/register?inviteCode=C6APK4N&from=web"
 
-CHANNEL_LINK = "hhttps://t.me/TEHELKA_VIP_KING"
+CHANNEL_LINK = "https://t.me/TEHELKA_VIP_KING"
 
-SUPPORT_LINK = "@Next_level_user"
+SUPPORT_LINK = "https://t.me/Next_level_user"
 
-# ===================================
+# =========================================
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -40,14 +40,14 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-user_numbers = {}
-verified_users = set()
-
 timezone = pytz.timezone("Asia/Dhaka")
 
-# ===================================
+verified_users = set()
+user_numbers = {}
+
+# =========================================
 # START
-# ===================================
+# =========================================
 
 def start(update: Update, context: CallbackContext):
 
@@ -65,7 +65,7 @@ def start(update: Update, context: CallbackContext):
 📈 Premium VIP Signals
 🎯 Safe Number Access
 ⚡ Fast Winning Updates
-🔐 VIP Member Verification
+🔐 VIP Verification System
 
 ━━━━━━━━━━━━━━━━
 
@@ -77,9 +77,9 @@ def start(update: Update, context: CallbackContext):
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
-# ===================================
+# =========================================
 # BUTTON
-# ===================================
+# =========================================
 
 def button(update: Update, context: CallbackContext):
 
@@ -98,8 +98,7 @@ def button(update: Update, context: CallbackContext):
 
 ━━━━━━━━━━━━━━━━
 
-⚡ After Verification
-VIP Prediction Access Will Be Activated
+💎 VIP ACCESS WAITING 💎
 """
         )
 
@@ -109,16 +108,15 @@ VIP Prediction Access Will Be Activated
             "📩 Send Any 3 Digit Number"
         )
 
-# ===================================
+# =========================================
 # MESSAGE
-# ===================================
+# =========================================
 
 def handle_message(update: Update, context: CallbackContext):
 
     user_id = update.message.from_user.id
     text = update.message.text.strip()
 
-    # UID VERIFY
     if context.user_data.get("waiting_uid"):
 
         verified_users.add(user_id)
@@ -136,22 +134,15 @@ def handle_message(update: Update, context: CallbackContext):
             """
 🎉 VIP VERIFICATION SUCCESSFUL 🎉
 
-╔════ ACCESS GRANTED ════╗
+🔥 VIP ACCESS ACTIVATED 🔥
 
-🔥 VIP Prediction Activated
-🔥 Wingo 1Min Access Enabled
-🔥 Premium Support Enabled
-
-━━━━━━━━━━━━━━━━
-
-💎 WELCOME TO VIP TEHELKA 💎
+💎 Welcome To VIP TEHELKA 💎
 """,
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
 
         return
 
-    # SAVE NUMBER
     if user_id in verified_users:
 
         if text.isdigit() and len(text) == 3:
@@ -165,7 +156,7 @@ def handle_message(update: Update, context: CallbackContext):
             ]
 
             update.message.reply_text(
-                f"✅ VIP Number Saved: {text}",
+                f"✅ VIP NUMBER SAVED: {text}",
                 reply_markup=InlineKeyboardMarkup(keyboard)
             )
 
@@ -175,9 +166,9 @@ def handle_message(update: Update, context: CallbackContext):
                 "❌ Send Only 3 Digit Number Example: 395"
             )
 
-# ===================================
+# =========================================
 # SEND PREDICTION
-# ===================================
+# =========================================
 
 def send_prediction(bot):
 
@@ -213,9 +204,9 @@ def send_prediction(bot):
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
-# ===================================
+# =========================================
 # ALERTS
-# ===================================
+# =========================================
 
 def send_10min_alert(bot):
 
@@ -224,9 +215,6 @@ def send_10min_alert(bot):
 
 🔥 BIG WINGO 1MIN PREDICTION
 WILL START IN 10 MINUTES 🔥
-
-⚡ Stay Ready
-⚡ Don’t Miss The Entry
 
 ━━━━━━━━━━━━━━━━
 
@@ -243,9 +231,6 @@ def send_1min_alert(bot):
 🔥 VIP WINGO 1MIN PREDICTION
 STARTING IN 1 MINUTE 🔥
 
-📌 Get Ready For Entry
-📌 Prediction About To Drop
-
 ━━━━━━━━━━━━━━━━
 
 💎 VIP TEHELKA 💎
@@ -253,9 +238,9 @@ STARTING IN 1 MINUTE 🔥
 
     bot.send_message(chat_id=CHANNEL_ID, text=text)
 
-# ===================================
+# =========================================
 # MAIN
-# ===================================
+# =========================================
 
 def main():
 
@@ -269,10 +254,6 @@ def main():
 
     scheduler = BackgroundScheduler(timezone=timezone)
 
-    # ==========================
-    # 10 MIN ALERTS
-    # ==========================
-
     scheduler.add_job(
         lambda: send_10min_alert(updater.bot),
         'cron',
@@ -305,10 +286,6 @@ def main():
         timezone=timezone
     )
 
-    # ==========================
-    # 1 MIN ALERTS
-    # ==========================
-
     scheduler.add_job(
         lambda: send_1min_alert(updater.bot),
         'cron',
@@ -340,10 +317,6 @@ def main():
         minute=59,
         timezone=timezone
     )
-
-    # ==========================
-    # AUTO POSTS
-    # ==========================
 
     for minute in range(0, 11):
 
@@ -378,17 +351,6 @@ def main():
             minute=minute,
             timezone=timezone
         )
-        def main():
-
-    updater = Updater(TOKEN, use_context=True)
-
-    dp = updater.dispatcher
-
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CallbackQueryHandler(button))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
-
-    scheduler = BackgroundScheduler(timezone=timezone)
 
     scheduler.start()
 
@@ -398,6 +360,7 @@ def main():
 
     updater.idle()
 
+# =========================================
 
 if __name__ == "__main__":
     main()

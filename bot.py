@@ -232,8 +232,6 @@ def handle_message(update, context):
 
         update.message.reply_text(
       update.message.reply_text(
-
-f"""
 ━━━━━━━━━━━━━━━━━━
 💎 VIP TEHELKA PREDICTION 💎
 ━━━━━━━━━━━━━━━━━━

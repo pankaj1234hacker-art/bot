@@ -3,6 +3,8 @@ os.environ["http_proxy"] = ""
 os.environ["https_proxy"] = ""
 
 import logging
+import pytz
+
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
     Updater,
@@ -12,20 +14,24 @@ from telegram.ext import (
     Filters,
     CallbackContext,
 )
+
 from apscheduler.schedulers.background import BackgroundScheduler
-import pytz
-# =========================
+
+# ===================================
 # 🔥 CHANGE THESE ONLY 🔥
-# =========================
+# ===================================
 
 TOKEN = "8775211756:AAElPVrt88CwAU16JdUa36m51Y8DOehAZ5M"
-CHANNEL_ID = "https://t.me/TEHELKA_VIP_KING"
+
+CHANNEL_ID = "@https://t.me/TEHELKA_VIP_KING"
 
 REGISTRATION_LINK = "https://13lwin6.com/register?inviteCode=C6APK4N&from=web"
-CHANNEL_LINK = "https://t.me/your_channel_username"
-SUPPORT_LINK = "https://t.me/your_support_username"
 
-# =========================
+CHANNEL_LINK = "hhttps://t.me/TEHELKA_VIP_KING"
+
+SUPPORT_LINK = "@Next_level_user"
+
+# ===================================
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -37,34 +43,33 @@ logger = logging.getLogger(__name__)
 user_numbers = {}
 verified_users = set()
 
-# =========================
-# START COMMAND
-# =========================
+timezone = pytz.timezone("Asia/Dhaka")
+
+# ===================================
+# START
+# ===================================
 
 def start(update: Update, context: CallbackContext):
 
     keyboard = [
-        [InlineKeyboardButton("💎 REGISTER VIP ACCOUNT 💎", url=REGISTRATION_LINK)],
-        [InlineKeyboardButton("📢 JOIN OFFICIAL CHANNEL 📢", url=CHANNEL_LINK)],
-        [InlineKeyboardButton("✅ I HAVE REGISTERED ✅", callback_data='registered')]
+        [InlineKeyboardButton("💎 VIP REGISTRATION 💎", url=REGISTRATION_LINK)],
+        [InlineKeyboardButton("📢 JOIN VIP CHANNEL 📢", url=CHANNEL_LINK)],
+        [InlineKeyboardButton("✅ I HAVE REGISTERED ✅", callback_data="registered")]
     ]
 
     text = """
-╔═══💎 VIP TEHELKA 💎═══╗
+╔════💎 VIP TEHELKA 💎════╗
 
 🔥 MOST POWERFUL WINGO 1MIN PREDICTION 🔥
 
-🎯 High Accuracy VIP Signals
-📈 Daily Safe Numbers
+📈 Premium VIP Signals
+🎯 Safe Number Access
 ⚡ Fast Winning Updates
-🔐 Premium Member Access
+🔐 VIP Member Verification
 
 ━━━━━━━━━━━━━━━━
 
-🚨 LIMITED VIP ACCESS 🚨
-
-To Continue
-Complete VIP Registration First 👇
+🚨 COMPLETE REGISTRATION FIRST 🚨
 """
 
     update.message.reply_text(
@@ -72,23 +77,24 @@ Complete VIP Registration First 👇
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
-# =========================
-# BUTTON HANDLER
-# =========================
+# ===================================
+# BUTTON
+# ===================================
 
 def button(update: Update, context: CallbackContext):
 
     query = update.callback_query
     query.answer()
 
-    if query.data == 'registered':
+    if query.data == "registered":
+
+        context.user_data["waiting_uid"] = True
 
         query.message.reply_text(
             """
-🔐 VIP MEMBER VERIFICATION 🔐
+🔐 VIP VERIFICATION REQUIRED 🔐
 
-Send Your Game UID Number
-For Premium Access Verification ✅
+📌 Send Your Game UID Number
 
 ━━━━━━━━━━━━━━━━
 
@@ -97,17 +103,15 @@ VIP Prediction Access Will Be Activated
 """
         )
 
-        context.user_data['waiting_uid'] = True
-
-    elif query.data == 'predict':
+    elif query.data == "prediction":
 
         query.message.reply_text(
-            "📩 Send Any 3 Digit Prediction Number"
+            "📩 Send Any 3 Digit Number"
         )
 
-# =========================
-# MESSAGE HANDLER
-# =========================
+# ===================================
+# MESSAGE
+# ===================================
 
 def handle_message(update: Update, context: CallbackContext):
 
@@ -115,38 +119,39 @@ def handle_message(update: Update, context: CallbackContext):
     text = update.message.text.strip()
 
     # UID VERIFY
-    if context.user_data.get('waiting_uid'):
+    if context.user_data.get("waiting_uid"):
 
         verified_users.add(user_id)
-        context.user_data['waiting_uid'] = False
+
+        context.user_data["waiting_uid"] = False
 
         keyboard = [
-            [InlineKeyboardButton("🎯 GET VIP PREDICTION 🎯", callback_data='predict')],
+            [InlineKeyboardButton("🎯 GET VIP PREDICTION 🎯", callback_data="prediction")],
             [InlineKeyboardButton("💎 VIP REGISTRATION 💎", url=REGISTRATION_LINK)],
-            [InlineKeyboardButton("📞 CONTACT SUPPORT 📞", url=SUPPORT_LINK)],
-            [InlineKeyboardButton("🚀 JOIN VIP CHANNEL 🚀", url=CHANNEL_LINK)]
+            [InlineKeyboardButton("🚀 JOIN VIP CHANNEL 🚀", url=CHANNEL_LINK)],
+            [InlineKeyboardButton("📞 CONTACT SUPPORT 📞", url=SUPPORT_LINK)]
         ]
 
         update.message.reply_text(
             """
 🎉 VIP VERIFICATION SUCCESSFUL 🎉
 
-╔══💎 ACCESS GRANTED 💎══╗
+╔════ ACCESS GRANTED ════╗
 
 🔥 VIP Prediction Activated
-🔥 Wingo 1Min Signals Enabled
+🔥 Wingo 1Min Access Enabled
 🔥 Premium Support Enabled
 
 ━━━━━━━━━━━━━━━━
 
-🚀 Welcome To VIP TEHELKA FAMILY 🚀
+💎 WELCOME TO VIP TEHELKA 💎
 """,
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
 
         return
 
-    # SAVE PREDICTION
+    # SAVE NUMBER
     if user_id in verified_users:
 
         if text.isdigit() and len(text) == 3:
@@ -160,7 +165,7 @@ def handle_message(update: Update, context: CallbackContext):
             ]
 
             update.message.reply_text(
-                f"✅ VIP Prediction Saved: {text}",
+                f"✅ VIP Number Saved: {text}",
                 reply_markup=InlineKeyboardMarkup(keyboard)
             )
 
@@ -170,9 +175,9 @@ def handle_message(update: Update, context: CallbackContext):
                 "❌ Send Only 3 Digit Number Example: 395"
             )
 
-# =========================
+# ===================================
 # SEND PREDICTION
-# =========================
+# ===================================
 
 def send_prediction(bot):
 
@@ -208,9 +213,9 @@ def send_prediction(bot):
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
-# =========================
+# ===================================
 # ALERTS
-# =========================
+# ===================================
 
 def send_10min_alert(bot):
 
@@ -218,7 +223,7 @@ def send_10min_alert(bot):
 🚨 ATTENTION VIP MEMBERS 🚨
 
 🔥 BIG WINGO 1MIN PREDICTION
-WILL START SOON 🔥
+WILL START IN 10 MINUTES 🔥
 
 ⚡ Stay Ready
 ⚡ Don’t Miss The Entry
@@ -248,9 +253,9 @@ STARTING IN 1 MINUTE 🔥
 
     bot.send_message(chat_id=CHANNEL_ID, text=text)
 
-# =========================
+# ===================================
 # MAIN
-# =========================
+# ===================================
 
 def main():
 
@@ -262,54 +267,116 @@ def main():
     dp.add_handler(CallbackQueryHandler(button))
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
 
-    scheduler = BackgroundScheduler()
+    scheduler = BackgroundScheduler(timezone=timezone)
 
-    # 10 MIN ALERT
-    scheduler.add_job(lambda: send_10min_alert(updater.bot), 'cron', hour=9, minute=50)
-    scheduler.add_job(lambda: send_10min_alert(updater.bot), 'cron', hour=11, minute=50)
-    scheduler.add_job(lambda: send_10min_alert(updater.bot), 'cron', hour=15, minute=50)
-    scheduler.add_job(lambda: send_10min_alert(updater.bot), 'cron', hour=19, minute=50)
+    # ==========================
+    # 10 MIN ALERTS
+    # ==========================
 
-    # 1 MIN ALERT
-    scheduler.add_job(lambda: send_1min_alert(updater.bot), 'cron', hour=9, minute=59)
-    scheduler.add_job(lambda: send_1min_alert(updater.bot), 'cron', hour=11, minute=59)
-    scheduler.add_job(lambda: send_1min_alert(updater.bot), 'cron', hour=15, minute=59)
-    scheduler.add_job(lambda: send_1min_alert(updater.bot), 'cron', hour=19, minute=59)
+    scheduler.add_job(
+        lambda: send_10min_alert(updater.bot),
+        'cron',
+        hour=9,
+        minute=50,
+        timezone=timezone
+    )
 
-    # AUTO POSTS 10:00 → 10:10
+    scheduler.add_job(
+        lambda: send_10min_alert(updater.bot),
+        'cron',
+        hour=11,
+        minute=50,
+        timezone=timezone
+    )
+
+    scheduler.add_job(
+        lambda: send_10min_alert(updater.bot),
+        'cron',
+        hour=15,
+        minute=50,
+        timezone=timezone
+    )
+
+    scheduler.add_job(
+        lambda: send_10min_alert(updater.bot),
+        'cron',
+        hour=19,
+        minute=50,
+        timezone=timezone
+    )
+
+    # ==========================
+    # 1 MIN ALERTS
+    # ==========================
+
+    scheduler.add_job(
+        lambda: send_1min_alert(updater.bot),
+        'cron',
+        hour=9,
+        minute=59,
+        timezone=timezone
+    )
+
+    scheduler.add_job(
+        lambda: send_1min_alert(updater.bot),
+        'cron',
+        hour=11,
+        minute=59,
+        timezone=timezone
+    )
+
+    scheduler.add_job(
+        lambda: send_1min_alert(updater.bot),
+        'cron',
+        hour=15,
+        minute=59,
+        timezone=timezone
+    )
+
+    scheduler.add_job(
+        lambda: send_1min_alert(updater.bot),
+        'cron',
+        hour=19,
+        minute=59,
+        timezone=timezone
+    )
+
+    # ==========================
+    # AUTO POSTS
+    # ==========================
+
     for minute in range(0, 11):
+
         scheduler.add_job(
             lambda: send_prediction(updater.bot),
             'cron',
             hour=10,
-            minute=minute
+            minute=minute,
+            timezone=timezone
         )
 
-    # AUTO POSTS 12:00 → 12:10
-    for minute in range(0, 11):
         scheduler.add_job(
             lambda: send_prediction(updater.bot),
             'cron',
             hour=12,
-            minute=minute
+            minute=minute,
+            timezone=timezone
         )
 
-    # AUTO POSTS 4:00 → 4:10
-    for minute in range(0, 11):
         scheduler.add_job(
             lambda: send_prediction(updater.bot),
             'cron',
             hour=16,
-            minute=minute
+            minute=minute,
+            timezone=timezone
         )
 
-    # AUTO POSTS 8:00 → 8:10
-    for minute in range(0, 11):
         scheduler.add_job(
             lambda: send_prediction(updater.bot),
             'cron',
             hour=20,
-            minute=minute
+            minute=minute,
+            timezone=timezone
         )
 
     scheduler.start()
@@ -319,5 +386,7 @@ def main():
     updater.start_polling()
     updater.idle()
 
-if __name__ == '__main__':
+# ===================================
+
+if __name__ == "__main__":
     main()

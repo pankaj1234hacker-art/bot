@@ -21,7 +21,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 # 🔥 CHANGE THESE ONLY 🔥
 # ===================================
 
-TOKEN = "8775211756:AAElPVrt88CwAU16JdUa36m51Y8DOehAZ5M"
+TOKEN = "8775211756:AAFfKcYQKHJdQ_jyF-XQFvCx5dXfuCHrrLs"
 
 CHANNEL_ID = "@https://t.me/TEHELKA_VIP_KING"
 

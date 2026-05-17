@@ -1,7 +1,4 @@
-import os
-os.environ["http_proxy"] = ""
-os.environ["https_proxy"] = ""
-
+import random
 import logging
 import pytz
 
@@ -18,18 +15,20 @@ from telegram.ext import (
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # ===================================
-# 🔥 CHANGE THESE ONLY 🔥
+# CONFIG
 # ===================================
 
-TOKEN = "8775211756:AAFfKcYQKHJdQ_jyF-XQFvCx5dXfuCHrrLs"
+TOKEN = "8775211756:AAFWtG1PNM393_nPcAchCNaDuEKIilhjGGg"
 
-CHANNEL_ID = "@your_channel_username"
+ADMIN_ID = 8793501975
+
+CHANNEL_ID = "@TEHELKA_VIP_KING"
+
+CHANNEL_LINK = "https://t.me/TEHELKA_VIP_KING"
+
+SUPPORT_LINK = "https://t.me/Next_level_user"
 
 REGISTRATION_LINK = "https://13lwin6.com/register?inviteCode=C6APK4N&from=web"
-
-CHANNEL_LINK = "https://t.me/your_channel_username"
-
-SUPPORT_LINK = "https://t.me/your_support_username"
 
 # ===================================
 
@@ -40,10 +39,10 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-user_numbers = {}
-verified_users = set()
+timezone = pytz.timezone("Asia/Kolkata")
 
-timezone = pytz.timezone("Asia/Dhaka")
+verified_users = set()
+all_users = set()
 
 # ===================================
 # START
@@ -51,25 +50,33 @@ timezone = pytz.timezone("Asia/Dhaka")
 
 def start(update: Update, context: CallbackContext):
 
+    user_id = update.message.from_user.id
+
+    all_users.add(user_id)
+
     keyboard = [
-        [InlineKeyboardButton("💎 VIP REGISTRATION 💎", url=REGISTRATION_LINK)],
-        [InlineKeyboardButton("📢 JOIN VIP CHANNEL 📢", url=CHANNEL_LINK)],
+        [InlineKeyboardButton("🔥 VIP REGISTRATION 🔥", url=REGISTRATION_LINK)],
+        [InlineKeyboardButton("🚀 JOIN TEHELKA CHANNEL 🚀", url=CHANNEL_LINK)],
         [InlineKeyboardButton("✅ I HAVE REGISTERED ✅", callback_data="registered")]
     ]
 
     text = """
-╔════💎 VIP TEHELKA 💎════╗
+╔══════════════════════╗
+      💎 VIP TEHELKA 💎
+╚══════════════════════╝
 
-🔥 MOST POWERFUL WINGO 1MIN PREDICTION 🔥
+🔥 MOST POWERFUL WINGO BOT 🔥
 
-📈 Premium VIP Signals
-🎯 Safe Number Access
-⚡ Fast Winning Updates
-🔐 VIP Member Verification
+⚡ PREMIUM VIP PREDICTION
+⚡ HIGH ACCURACY SIGNAL
+⚡ FAST WINNING SUPPORT
 
-━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━
 
-🚨 COMPLETE REGISTRATION FIRST 🚨
+📌 COMPLETE REGISTRATION FIRST
+📌 THEN VERIFY YOUR UID
+
+━━━━━━━━━━━━━━━━━━
 """
 
     update.message.reply_text(
@@ -78,47 +85,74 @@ def start(update: Update, context: CallbackContext):
     )
 
 # ===================================
-# BUTTON
+# BUTTONS
 # ===================================
 
 def button(update: Update, context: CallbackContext):
 
     query = update.callback_query
+
     query.answer()
 
+    user_id = query.from_user.id
+
+    # REGISTERED BUTTON
     if query.data == "registered":
 
         context.user_data["waiting_uid"] = True
 
         query.message.reply_text(
             """
-🔐 VIP VERIFICATION REQUIRED 🔐
+╔══════════════════════╗
+      🔐 UID VERIFY 🔐
+╚══════════════════════╝
 
-📌 Send Your Game UID Number
+📥 SEND YOUR GAME UID NUMBER
 
-━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━
 
-⚡ After Verification
-VIP Prediction Access Will Be Activated
+⚡ AFTER VERIFICATION
+VIP PREDICTION ACCESS
+WILL BE ACTIVATED
 """
         )
 
+    # PREDICTION BUTTON
     elif query.data == "prediction":
 
+        context.user_data["waiting_prediction"] = True
+
         query.message.reply_text(
-            "📩 Send Any 3 Digit Number"
+            """
+╔══════════════════════╗
+   🎯 GET PREDICTION 🎯
+╚══════════════════════╝
+
+📩 SEND ANY 3 DIGIT NUMBER
+
+Example:
+123
+
+━━━━━━━━━━━━━━━━━━
+"""
         )
 
 # ===================================
-# MESSAGE
+# MESSAGES
 # ===================================
 
 def handle_message(update: Update, context: CallbackContext):
 
     user_id = update.message.from_user.id
+
     text = update.message.text.strip()
 
+    all_users.add(user_id)
+
+    # ===================================
     # UID VERIFY
+    # ===================================
+
     if context.user_data.get("waiting_uid"):
 
         verified_users.add(user_id)
@@ -126,174 +160,212 @@ def handle_message(update: Update, context: CallbackContext):
         context.user_data["waiting_uid"] = False
 
         keyboard = [
-            [InlineKeyboardButton("🎯 GET VIP PREDICTION 🎯", callback_data="prediction")],
-            [InlineKeyboardButton("💎 VIP REGISTRATION 💎", url=REGISTRATION_LINK)],
-            [InlineKeyboardButton("🚀 JOIN VIP CHANNEL 🚀", url=CHANNEL_LINK)],
+            [InlineKeyboardButton("🎯 GET PREDICTION 🎯", callback_data="prediction")],
+            [InlineKeyboardButton("🔥 VIP REGISTRATION 🔥", url=REGISTRATION_LINK)],
+            [InlineKeyboardButton("🚀 JOIN CHANNEL 🚀", url=CHANNEL_LINK)],
             [InlineKeyboardButton("📞 CONTACT SUPPORT 📞", url=SUPPORT_LINK)]
         ]
 
         update.message.reply_text(
             """
-🎉 VIP VERIFICATION SUCCESSFUL 🎉
+╔══════════════════════╗
+   🎉 UID VERIFIED 🎉
+╚══════════════════════╝
 
-╔════ ACCESS GRANTED ════╗
+🔥 VIP ACCESS ACTIVATED 🔥
 
-🔥 VIP Prediction Activated
-🔥 Wingo 1Min Access Enabled
-🔥 Premium Support Enabled
+⚡ PREDICTION ENABLED
+⚡ PREMIUM SIGNAL ACCESS
+⚡ FAST ENTRY SUPPORT
 
-━━━━━━━━━━━━━━━━
-
-💎 WELCOME TO VIP TEHELKA 💎
+━━━━━━━━━━━━━━━━━━
 """,
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
 
         return
 
-    # SAVE NUMBER
-    if user_id in verified_users:
+    # ===================================
+    # PREDICTION SYSTEM
+    # ===================================
 
-        if text.isdigit() and len(text) == 3:
-
-            user_numbers[user_id] = text
-
-            keyboard = [
-                [InlineKeyboardButton("💎 VIP REGISTRATION 💎", url=REGISTRATION_LINK)],
-                [InlineKeyboardButton("🚀 JOIN VIP CHANNEL 🚀", url=CHANNEL_LINK)],
-                [InlineKeyboardButton("📞 CONTACT SUPPORT 📞", url=SUPPORT_LINK)]
-            ]
-
-            update.message.reply_text(
-                f"✅ VIP Number Saved: {text}",
-                reply_markup=InlineKeyboardMarkup(keyboard)
-            )
-
-        else:
-
-            update.message.reply_text(
-                "❌ Send Only 3 Digit Number Example: 395"
-            )
-# ==================================================
-# 🔥 BUTTON CLICK
-# ==================================================
-
-def button(update, context):
-
-    query = update.callback_query
-
-    user_id = query.from_user.id
-
-    if query.data == 'vip_pred':
-
-        user_waiting[user_id] = True
-
-        query.edit_message_text(
-
-"""
-╔══════════════════╗
- 💎 VIP TEHELKA 💎
-╚══════════════════╝
-
-🎮 WinGo 1 Minute Game
-
-━━━━━━━━━━━━━━━━━━
-
-📥 Enter Last 3 Digit
-
-Example: 123
-━━━━━━━━━━━━━━━━━━
-"""
-        )
-
-# ==================================================
-# 🔥 USER MESSAGE
-# ==================================================
-
-def handle_message(update, context):
-
-    global last_period
-
-    user_id = update.message.from_user.id
-
-    if user_waiting.get(user_id):
-
-        text = update.message.text
+    if context.user_data.get("waiting_prediction"):
 
         if not text.isdigit() or len(text) != 3:
-            )
+
             update.message.reply_text(
-                "❌ Please Enter Valid 3 Digit\n\nExample: 123"
+                """
+❌ INVALID NUMBER
+
+PLEASE SEND ONLY
+3 DIGIT NUMBER
+
+Example:
+123
+"""
             )
 
             return
 
-        last_period = text
+        result = random.choice(["BIG", "SMALL"])
+
+        # BIG = 1-4
+        if result == "BIG":
+            numbers = random.sample(range(1, 5), 2)
+
+        # SMALL = 5-9
+        else:
+            numbers = random.sample(range(5, 10), 2)
+
+        accuracy = random.randint(93, 99)
+
+        keyboard = [
+            [InlineKeyboardButton("🎯 GET PREDICTION AGAIN 🎯", callback_data="prediction")],
+            [InlineKeyboardButton("📞 CONTACT SUPPORT 📞", url=SUPPORT_LINK)],
+            [InlineKeyboardButton("🔥 VIP REGISTRATION 🔥", url=REGISTRATION_LINK)],
+            [InlineKeyboardButton("🚀 JOIN TEHELKA CHANNEL 🚀", url=CHANNEL_LINK)]
+        ]
 
         update.message.reply_text(
-      update.message.reply_text(
-━━━━━━━━━━━━━━━━━━
-💎 VIP TEHELKA PREDICTION 💎
-━━━━━━━━━━━━━━━━━━
+            f"""
+╔══════════════════════╗
+      💎 TEHELKA VIP 💎
+╚══════════════════════╝
 
-🎮 WinGo 1 Minute Game
-
-🎲 Period Number: {last_period}
+        🎮 WINGO 1 MINUTE 🎮
 
 ━━━━━━━━━━━━━━━━━━
 
-🎯 Prediction:
-{result}
-
-🔢 Safe Numbers:
-{numbers[0]} • {numbers[1]}
-
-📈 Accuracy: {accuracy}%
+🎲 PERIOD NUMBER
+➤ {text}
 
 ━━━━━━━━━━━━━━━━━━
 
-🔥 Registration Link Click Here 🔥
-{REGISTER_LINK}
+📊 RESULT
+➤ {result}
 
 ━━━━━━━━━━━━━━━━━━
 
-📞 For Any Problem Contact Here 👇
+🔢 SAFE NUMBERS
+➤ {numbers[0]}  •  {numbers[1]}
 
-{CONTACT_USERNAME}
+━━━━━━━━━━━━━━━━━━
+
+📈 ACCURACY
+➤ {accuracy}%
+
+━━━━━━━━━━━━━━━━━━
+
+🔥 PREMIUM VIP SIGNAL 🔥
+
+⚡ HIGH ACCURACY PREDICTION
+⚡ VIP WINNING FORMAT
+⚡ SAFE ENTRY SUPPORT
 
 ━━━━━━━━━━━━━━━━━━
 """,
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+
+        context.user_data["waiting_prediction"] = False
 
 # ===================================
-# SEND PREDICTION
+# AUTO ALERT
+# ===================================
+
+def send_alert(bot):
+
+    text = """
+╔══════════════════════╗
+      🚨 VIP ALERT 🚨
+╚══════════════════════╝
+
+🔥 BIG PREDICTION SESSION 🔥
+
+⚡ GET READY FOR ENTRY
+⚡ PREMIUM SIGNAL STARTING
+
+━━━━━━━━━━━━━━━━━━
+"""
+
+    bot.send_message(
+        chat_id=CHANNEL_ID,
+        text=text
+    )
+
+# ===================================
+# FINAL ALERT
+# ===================================
+
+def send_final_alert(bot):
+
+    text = """
+╔══════════════════════╗
+      ⏰ FINAL ALERT ⏰
+╚══════════════════════╝
+
+🔥 PREDICTION STARTING
+IN 1 MINUTE 🔥
+
+⚡ STAY READY
+⚡ DON'T MISS ENTRY
+
+━━━━━━━━━━━━━━━━━━
+"""
+
+    bot.send_message(
+        chat_id=CHANNEL_ID,
+        text=text
+    )
+
+# ===================================
+# AUTO PREDICTION POST
 # ===================================
 
 def send_prediction(bot):
 
-    if not user_numbers:
-        return
+    result = random.choice(["BIG", "SMALL"])
 
-    latest_number = list(user_numbers.values())[-1]
+    if result == "BIG":
+        numbers = random.sample(range(1, 5), 2)
+    else:
+        numbers = random.sample(range(5, 10), 2)
 
-    formatted = " • ".join(latest_number)
+    accuracy = random.randint(93, 99)
 
     keyboard = [
-        [InlineKeyboardButton("💎 VIP REGISTRATION 💎", url=REGISTRATION_LINK)],
-        [InlineKeyboardButton("🚀 JOIN VIP CHANNEL 🚀", url=CHANNEL_LINK)],
-        [InlineKeyboardButton("📞 CONTACT SUPPORT 📞", url=SUPPORT_LINK)]
+        [InlineKeyboardButton("📞 CONTACT SUPPORT 📞", url=SUPPORT_LINK)],
+        [InlineKeyboardButton("🔥 VIP REGISTRATION 🔥", url=REGISTRATION_LINK)],
+        [InlineKeyboardButton("🚀 JOIN TEHELKA CHANNEL 🚀", url=CHANNEL_LINK)]
     ]
 
     text = f"""
-╔════💎 VIP TEHELKA 💎════╗
+╔══════════════════════╗
+   💎 AUTO PREDICTION 💎
+╚══════════════════════╝
 
-🕒 PERIOD: ***
-🎯 SAFE NUMBER: {formatted}
+🎮 WINGO 1 MINUTE
 
-📈 ACCURACY: 95.87%
+━━━━━━━━━━━━━━━━━━
 
-━━━━━━━━━━━━━━━━
+📊 RESULT
+➤ {result}
 
-🔥 WINGO 1MIN GAME 🔥
+━━━━━━━━━━━━━━━━━━
+
+🔢 SAFE NUMBERS
+➤ {numbers[0]} • {numbers[1]}
+
+━━━━━━━━━━━━━━━━━━
+
+📈 ACCURACY
+➤ {accuracy}%
+
+━━━━━━━━━━━━━━━━━━
+
+🔥 VIP TEHELKA 🔥
+
+━━━━━━━━━━━━━━━━━━
 """
 
     bot.send_message(
@@ -303,44 +375,64 @@ def send_prediction(bot):
     )
 
 # ===================================
-# ALERTS
+# ADMIN PANEL
 # ===================================
 
-def send_10min_alert(bot):
+def panel(update: Update, context: CallbackContext):
 
-    text = """
-🚨 ATTENTION VIP MEMBERS 🚨
+    if update.message.from_user.id != ADMIN_ID:
+        return
 
-🔥 BIG WINGO 1MIN PREDICTION
-WILL START IN 10 MINUTES 🔥
+    update.message.reply_text(
+        f"""
+👑 ADMIN PANEL 👑
 
-⚡ Stay Ready
-⚡ Don’t Miss The Entry
+👥 TOTAL USERS:
+{len(all_users)}
 
-━━━━━━━━━━━━━━━━
-
-💎 VIP TEHELKA 💎
+✅ VERIFIED USERS:
+{len(verified_users)}
 """
+    )
 
-    bot.send_message(chat_id=CHANNEL_ID, text=text)
+# ===================================
+# BROADCAST
+# ===================================
 
-def send_1min_alert(bot):
+def broadcast(update: Update, context: CallbackContext):
 
-    text = """
-⏰ FINAL ALERT ⏰
+    if update.message.from_user.id != ADMIN_ID:
+        return
 
-🔥 VIP WINGO 1MIN PREDICTION
-STARTING IN 1 MINUTE 🔥
+    msg = update.message.text.replace("/broadcast", "").strip()
 
-📌 Get Ready For Entry
-📌 Prediction About To Drop
+    if not msg:
 
-━━━━━━━━━━━━━━━━
+        update.message.reply_text(
+            "❌ SEND MESSAGE"
+        )
 
-💎 VIP TEHELKA 💎
-"""
+        return
 
-    bot.send_message(chat_id=CHANNEL_ID, text=text)
+    sent = 0
+
+    for user in all_users:
+
+        try:
+
+            context.bot.send_message(
+                chat_id=user,
+                text=msg
+            )
+
+            sent += 1
+
+        except:
+            pass
+
+    update.message.reply_text(
+        f"✅ MESSAGE SENT TO {sent} USERS"
+    )
 
 # ===================================
 # MAIN
@@ -352,87 +444,94 @@ def main():
 
     dp = updater.dispatcher
 
+    # COMMANDS
     dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("panel", panel))
+    dp.add_handler(CommandHandler("broadcast", broadcast))
+
+    # BUTTONS
     dp.add_handler(CallbackQueryHandler(button))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
 
-    scheduler = BackgroundScheduler(timezone=timezone)
+    # MESSAGES
+    dp.add_handler(
+        MessageHandler(
+            Filters.text & ~Filters.command,
+            handle_message
+        )
+    )
 
-    # ==========================
+    # SCHEDULER
+    scheduler = BackgroundScheduler(
+        timezone=timezone
+    )
+
+    # ===================================
     # 10 MIN ALERTS
-    # ==========================
+    # ===================================
 
     scheduler.add_job(
-        lambda: send_10min_alert(updater.bot),
+        lambda: send_alert(updater.bot),
         'cron',
         hour=9,
-        minute=50,
-        timezone=timezone
+        minute=50
     )
 
     scheduler.add_job(
-        lambda: send_10min_alert(updater.bot),
+        lambda: send_alert(updater.bot),
         'cron',
         hour=11,
-        minute=50,
-        timezone=timezone
+        minute=50
     )
 
     scheduler.add_job(
-        lambda: send_10min_alert(updater.bot),
+        lambda: send_alert(updater.bot),
         'cron',
         hour=15,
-        minute=50,
-        timezone=timezone
+        minute=50
     )
 
     scheduler.add_job(
-        lambda: send_10min_alert(updater.bot),
+        lambda: send_alert(updater.bot),
         'cron',
         hour=19,
-        minute=50,
-        timezone=timezone
+        minute=50
     )
 
-    # ==========================
-    # 1 MIN ALERTS
-    # ==========================
+    # ===================================
+    # FINAL ALERTS
+    # ===================================
 
     scheduler.add_job(
-        lambda: send_1min_alert(updater.bot),
+        lambda: send_final_alert(updater.bot),
         'cron',
         hour=9,
-        minute=59,
-        timezone=timezone
+        minute=59
     )
 
     scheduler.add_job(
-        lambda: send_1min_alert(updater.bot),
+        lambda: send_final_alert(updater.bot),
         'cron',
         hour=11,
-        minute=59,
-        timezone=timezone
+        minute=59
     )
 
     scheduler.add_job(
-        lambda: send_1min_alert(updater.bot),
+        lambda: send_final_alert(updater.bot),
         'cron',
         hour=15,
-        minute=59,
-        timezone=timezone
+        minute=59
     )
 
     scheduler.add_job(
-        lambda: send_1min_alert(updater.bot),
+        lambda: send_final_alert(updater.bot),
         'cron',
         hour=19,
-        minute=59,
-        timezone=timezone
+        minute=59
     )
 
-    # ==========================
+    # ===================================
     # AUTO POSTS
-    # ==========================
+    # ===================================
 
     for minute in range(0, 11):
 
@@ -440,32 +539,28 @@ def main():
             lambda: send_prediction(updater.bot),
             'cron',
             hour=10,
-            minute=minute,
-            timezone=timezone
+            minute=minute
         )
 
         scheduler.add_job(
             lambda: send_prediction(updater.bot),
             'cron',
             hour=12,
-            minute=minute,
-            timezone=timezone
+            minute=minute
         )
 
         scheduler.add_job(
             lambda: send_prediction(updater.bot),
             'cron',
             hour=16,
-            minute=minute,
-            timezone=timezone
+            minute=minute
         )
 
         scheduler.add_job(
             lambda: send_prediction(updater.bot),
             'cron',
             hour=20,
-            minute=minute,
-            timezone=timezone
+            minute=minute
         )
 
     scheduler.start()
@@ -473,6 +568,7 @@ def main():
     print("🔥 VIP TEHELKA BOT STARTED 🔥")
 
     updater.start_polling()
+
     updater.idle()
 
 # ===================================

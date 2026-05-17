@@ -381,11 +381,11 @@ def main():
 
     scheduler.start()
 
-    print("🔥 VIP TEHELKA BOT STARTED 🔥")
+  print("🔥 VIP TEHELKA BOT STARTED 🔥")
 
-    updater.start_polling()
-    updater.idle()
+updater.start_polling(drop_pending_updates=True)
 
+updater.idle()
 # ===================================
 
 if __name__ == "__main__":

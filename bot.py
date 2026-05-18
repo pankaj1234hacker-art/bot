@@ -21,24 +21,24 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pytz import timezone
 
 
-# =========================
-# CONFIG
-# =========================
+# =====================================
+# BOT CONFIG
+# =====================================
 
 BOT_TOKEN = "8775211756:AAFWtG1PNM393_nPcAchCNaDuEKIilhjGGg"
 
-CHANNEL_ID = "@TEHELKA_VIP_KING"
+CHANNEL_ID = "@YOUR_CHANNEL_USERNAME"
 
-VIP_CHANNEL = "https://t.me/TEHELKA_VIP_KING"
+VIP_CHANNEL = "https://t.me/YOUR_CHANNEL_USERNAME"
 
 REGISTER_LINK = "https://13lwin6.com/register?inviteCode=C6APK4N&from=web"
 
 SUPPORT_LINK = "https://t.me/Next_level_user"
 
 
-# =========================
+# =====================================
 # STICKERS
-# =========================
+# =====================================
 
 STICKER_10MIN = "CAACAgUAAxkBAAIBP2oKn8i0a1JqoNAqRLTxvqcwJzoWAAIXEwACvmTQVn4hqlDaxy8AATsE"
 
@@ -57,24 +57,24 @@ END_STICKER_1 = "CAACAgUAAxkBAAIBUWoKo0uIfCGeV5GfZU0Fv_hYOe8HAALYEQACMazJVuD7AUj
 END_STICKER_2 = "CAACAgUAAxkBAAIBU2oKo39yvzCGf62ZmLIMd3cQk2TaAAJ-EwACnQdoV6lN-23qPLHPOwQ"
 
 
-# =========================
-# LOGGING
-# =========================
+# =====================================
+# LOG
+# =====================================
 
 logging.basicConfig(level=logging.INFO)
 
 
-# =========================
+# =====================================
 # MEMORY
-# =========================
+# =====================================
 
 uid_wait = set()
 prediction_wait = set()
 
 
-# =========================
-# WELCOME
-# =========================
+# =====================================
+# WELCOME TEXT
+# =====================================
 
 WELCOME_TEXT = """
 ╔════💎 VIP TEHELKA 💎════╗
@@ -92,9 +92,9 @@ WELCOME_TEXT = """
 """
 
 
-# =========================
-# START
-# =========================
+# =====================================
+# START COMMAND
+# =====================================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
@@ -116,9 +116,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-# =========================
-# BUTTONS
-# =========================
+# =====================================
+# BUTTON SYSTEM
+# =====================================
 
 async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
@@ -127,7 +127,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user_id = query.from_user.id
 
-    # REGISTER
+    # REGISTER BUTTON
     if query.data == "register_done":
 
         uid_wait.add(user_id)
@@ -136,7 +136,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "📌 SEND YOUR GAME UID NUMBER"
         )
 
-    # PREDICTION
+    # PREDICTION BUTTON
     elif query.data == "get_prediction":
 
         prediction_wait.add(user_id)
@@ -146,9 +146,9 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-# =========================
+# =====================================
 # MESSAGE SYSTEM
-# =========================
+# =====================================
 
 async def messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
@@ -188,10 +188,9 @@ async def messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
 
-    # PREDICTION
+    # PREDICTION SYSTEM
     if user_id in prediction_wait:
 
-        # only 3 digits
         if not text.isdigit() or len(text) != 3:
 
             await update.message.reply_text(
@@ -210,10 +209,12 @@ async def messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         result = random.choice(["BIG", "SMALL"])
 
+        # BIG = 0-4
         if result == "BIG":
 
             nums = random.sample(range(0, 5), 2)
 
+        # SMALL = 5-9
         else:
 
             nums = random.sample(range(5, 10), 2)
@@ -250,9 +251,9 @@ async def messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
 
-# =========================
-# CHANNEL FUNCTIONS
-# =========================
+# =====================================
+# CHANNEL STICKER
+# =====================================
 
 async def send_sticker(app, sticker):
 
@@ -262,14 +263,20 @@ async def send_sticker(app, sticker):
     )
 
 
+# =====================================
+# CHANNEL PREDICTION
+# =====================================
+
 async def send_prediction(app):
 
     result = random.choice(["BIG", "SMALL"])
 
+    # BIG = 0-4
     if result == "BIG":
 
         nums = random.sample(range(0, 5), 2)
 
+    # SMALL = 5-9
     else:
 
         nums = random.sample(range(5, 10), 2)
@@ -305,14 +312,15 @@ async def send_prediction(app):
     )
 
 
-# =========================
-# MAIN
-# =========================
+# =====================================
+# MAIN FUNCTION
+# =====================================
 
 def main():
 
     app = Application.builder().token(BOT_TOKEN).build()
 
+    # HANDLERS
     app.add_handler(CommandHandler("start", start))
 
     app.add_handler(CallbackQueryHandler(buttons))
@@ -324,42 +332,54 @@ def main():
         )
     )
 
+    # INDIA TIMEZONE
     scheduler = AsyncIOScheduler(
         timezone=timezone("Asia/Kolkata")
     )
 
-    # 9:50
+
+    # =====================================
+    # BEFORE START STICKERS
+    # =====================================
+
+    # 10 minute before
     scheduler.add_job(
         send_sticker,
         "cron",
-        hour=9,
+        hour="9,11,15,19",
         minute=50,
         args=[app, STICKER_10MIN]
     )
 
-    # 9:58
+    # 2 minute before
     scheduler.add_job(
         send_sticker,
         "cron",
-        hour=9,
+        hour="9,11,15,19",
         minute=58,
         args=[app, STICKER_2MIN]
     )
 
-    # 9:59
+    # 1 minute before
     scheduler.add_job(
         send_sticker,
         "cron",
-        hour=9,
+        hour="9,11,15,19",
         minute=59,
         args=[app, STICKER_1MIN]
     )
 
-    # every minute sticker
+
+    # =====================================
+    # RUNNING SESSION
+    # =====================================
+
+    # running sticker every minute
     scheduler.add_job(
         send_sticker,
         "cron",
-        minute="*/1",
+        hour="10,12,16,20",
+        minute="0-10",
         second=5,
         args=[app, RUNNING_STICKER]
     )
@@ -368,57 +388,71 @@ def main():
     scheduler.add_job(
         send_prediction,
         "cron",
-        minute="*/1",
+        hour="10,12,16,20",
+        minute="0-10",
         second=10,
         args=[app]
     )
 
-    # extra sticker 1
+
+    # =====================================
+    # EXTRA PREMIUM STICKERS
+    # =====================================
+
     scheduler.add_job(
         send_sticker,
         "cron",
-        minute="*/5",
+        hour="10,12,16,20",
+        minute="2,5,8",
         second=20,
         args=[app, EXTRA_STICKER_1]
     )
 
-    # extra sticker 2
     scheduler.add_job(
         send_sticker,
         "cron",
-        minute="*/7",
+        hour="10,12,16,20",
+        minute="3,6,9",
         second=25,
         args=[app, EXTRA_STICKER_2]
     )
 
-    # end sticker 1
+
+    # =====================================
+    # SESSION END
+    # =====================================
+
     scheduler.add_job(
         send_sticker,
         "cron",
-        hour=23,
-        minute=58,
+        hour="10,12,16,20",
+        minute=10,
+        second=40,
         args=[app, END_STICKER_1]
     )
 
-    # end sticker 2
     scheduler.add_job(
         send_sticker,
         "cron",
-        hour=23,
-        minute=59,
+        hour="10,12,16,20",
+        minute=10,
+        second=50,
         args=[app, END_STICKER_2]
     )
 
+
+    # START SCHEDULER
     scheduler.start()
 
     print("🔥 VIP TEHELKA BOT RUNNING 🔥")
 
+    # START BOT
     app.run_polling()
 
 
-# =========================
+# =====================================
 # RUN
-# =========================
+# =====================================
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,45 @@
+from telegram.ext import Updater, MessageHandler, Filters
+
+TOKEN = "PASTE_YOUR_BOT_TOKEN"
+
+# ===================================
+# STICKER FILE ID GETTER
+# ===================================
+
+def get_sticker(update, context):
+
+    if update.message.sticker:
+
+        file_id = update.message.sticker.file_id
+
+        update.message.reply_text(
+            f"✅ STICKER FILE ID:\n\n{file_id}"
+        )
+
+# ===================================
+# MAIN
+# ===================================
+
+def main():
+
+    updater = Updater(TOKEN, use_context=True)
+
+    dp = updater.dispatcher
+
+    dp.add_handler(
+        MessageHandler(
+            Filters.sticker,
+            get_sticker
+        )
+    )
+
+    print("🔥 STICKER ID BOT STARTED 🔥")
+
+    updater.start_polling()
+
+    updater.idle()
+
+# ===================================
+
+if __name__ == "__main__":
+    main()

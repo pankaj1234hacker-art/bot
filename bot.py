@@ -27,9 +27,9 @@ from pytz import timezone
 
 BOT_TOKEN = "8775211756:AAFWtG1PNM393_nPcAchCNaDuEKIilhjGGg"
 
-CHANNEL_ID = "@YOUR_CHANNEL_USERNAME"
+CHANNEL_ID = "8775211756"
 
-VIP_CHANNEL = "https://t.me/YOUR_CHANNEL_USERNAME"
+VIP_CHANNEL = "https://t.me/TEHELKA_VIP_KING"
 
 REGISTER_LINK = "https://13lwin6.com/register?inviteCode=C6APK4N&from=web"
 

@@ -3,28 +3,27 @@ import logging
 import asyncio
 
 from telegram import (
-Update,
-InlineKeyboardButton,
-InlineKeyboardMarkup
+    Update,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup
 )
 
 from telegram.ext import (
-Application,
-CommandHandler,
-CallbackQueryHandler,
-MessageHandler,
-ContextTypes,
-filters
+    Application,
+    CommandHandler,
+    CallbackQueryHandler,
+    MessageHandler,
+    ContextTypes,
+    filters
 )
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pytz import timezone
 
-#=====================================
 
-BOT CONFIG
-
-#=====================================
+# =====================================
+# BOT CONFIG
+# =====================================
 
 BOT_TOKEN = "8775211756:AAFWtG1PNM393_nPcAchCNaDuEKIilhjGGg"
 
@@ -36,11 +35,10 @@ REGISTER_LINK = "https://13lwin6.com/register?inviteCode=C6APK4N&from=web"
 
 SUPPORT_LINK = "https://t.me/Next_level_user"
 
-=====================================
 
-STICKERS
-
-=====================================
+# =====================================
+# STICKERS
+# =====================================
 
 STICKER_10MIN = "CAACAgUAAxkBAAIBP2oKn8i0a1JqoNAqRLTxvqcwJzoWAAIXEwACvmTQVn4hqlDaxy8AATsE"
 
@@ -58,28 +56,25 @@ END_STICKER_1 = "CAACAgUAAxkBAAIBUWoKo0uIfCGeV5GfZU0Fv_hYOe8HAALYEQACMazJVuD7AUj
 
 END_STICKER_2 = "CAACAgUAAxkBAAIBU2oKo39yvzCGf62ZmLIMd3cQk2TaAAJ-EwACnQdoV6lN-23qPLHPOwQ"
 
-=====================================
 
-LOG
-
-=====================================
+# =====================================
+# LOGGING
+# =====================================
 
 logging.basicConfig(level=logging.INFO)
 
-=====================================
 
-MEMORY
-
-=====================================
+# =====================================
+# MEMORY
+# =====================================
 
 uid_wait = set()
 prediction_wait = set()
 
-=====================================
 
-WELCOME TEXT
-
-=====================================
+# =====================================
+# WELCOME TEXT
+# =====================================
 
 WELCOME_TEXT = """
 ╔════💎 VIP TEHELKA 💎════╗
@@ -96,149 +91,123 @@ WELCOME_TEXT = """
 🚨 JOIN VIP CHANNEL & COMPLETE REGISTRATION 🚨
 """
 
-=====================================
 
-START COMMAND
-
-=====================================
+# =====================================
+# START COMMAND
+# =====================================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-keyboard = [  
+    keyboard = [
+        [InlineKeyboardButton("💎 VIP CHANNEL", url=VIP_CHANNEL)],
+        [InlineKeyboardButton("🔥 REGISTRATION", url=REGISTER_LINK)],
+        [InlineKeyboardButton("📞 CONTACT SUPPORT", url=SUPPORT_LINK)],
+        [InlineKeyboardButton("✅ I HAVE REGISTERED", callback_data="register_done")]
+    ]
 
-    [InlineKeyboardButton("💎 VIP CHANNEL", url=VIP_CHANNEL)],  
+    await update.message.reply_text(
+        WELCOME_TEXT,
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
-    [InlineKeyboardButton("🔥 REGISTRATION", url=REGISTER_LINK)],  
 
-    [InlineKeyboardButton("📞 CONTACT SUPPORT", url=SUPPORT_LINK)],  
-
-    [InlineKeyboardButton("✅ I HAVE REGISTERED", callback_data="register_done")]  
-
-]  
-
-await update.message.reply_text(  
-    WELCOME_TEXT,  
-    reply_markup=InlineKeyboardMarkup(keyboard)  
-)
-
-=====================================
-
-BUTTON SYSTEM
-
-=====================================
+# =====================================
+# BUTTON SYSTEM
+# =====================================
 
 async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-query = update.callback_query  
-await query.answer()  
+    query = update.callback_query
+    await query.answer()
 
-user_id = query.from_user.id  
+    user_id = query.from_user.id
 
-# REGISTER BUTTON  
-if query.data == "register_done":  
+    if query.data == "register_done":
 
-    uid_wait.add(user_id)  
+        uid_wait.add(user_id)
 
-    await query.message.reply_text(  
-        "📌 SEND YOUR GAME UID NUMBER"  
-    )  
+        await query.message.reply_text(
+            "📌 SEND YOUR GAME UID NUMBER"
+        )
 
-# PREDICTION BUTTON  
-elif query.data == "get_prediction":  
+    elif query.data == "get_prediction":
 
-    prediction_wait.add(user_id)  
+        prediction_wait.add(user_id)
 
-    await query.message.reply_text(  
-        "📌 SEND LAST 3 DIGIT PERIOD NUMBER"  
-    )
+        await query.message.reply_text(
+            "📌 SEND LAST 3 DIGIT PERIOD NUMBER"
+        )
 
-=====================================
 
-MESSAGE SYSTEM
-
-=====================================
+# =====================================
+# MESSAGE SYSTEM
+# =====================================
 
 async def messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-user_id = update.message.from_user.id  
-text = update.message.text.strip()  
+    user_id = update.message.from_user.id
+    text = update.message.text.strip()
 
-# UID VERIFY  
-if user_id in uid_wait:  
+    # UID SYSTEM
+    if user_id in uid_wait:
 
-    if text.isdigit():  
+        if text.isdigit():
 
-        uid_wait.remove(user_id)  
+            uid_wait.remove(user_id)
 
-        keyboard = [  
+            keyboard = [
+                [InlineKeyboardButton("🔥 REGISTRATION", url=REGISTER_LINK)],
+                [InlineKeyboardButton("📞 CONTACT SUPPORT", url=SUPPORT_LINK)],
+                [InlineKeyboardButton("💎 VIP CHANNEL", url=VIP_CHANNEL)],
+                [InlineKeyboardButton("🎯 GET PREDICTION", callback_data="get_prediction")]
+            ]
 
-            [InlineKeyboardButton("🔥 REGISTRATION", url=REGISTER_LINK)],  
+            await update.message.reply_text(
+                "✅ UID VERIFIED SUCCESSFULLY",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
 
-            [InlineKeyboardButton("📞 CONTACT SUPPORT", url=SUPPORT_LINK)],  
+        else:
 
-            [InlineKeyboardButton("💎 VIP CHANNEL", url=VIP_CHANNEL)],  
+            await update.message.reply_text(
+                "❌ ONLY NUMBER ALLOWED"
+            )
 
-            [InlineKeyboardButton("🎯 GET PREDICTION", callback_data="get_prediction")]  
+        return
 
-        ]  
+    # PREDICTION SYSTEM
+    if user_id in prediction_wait:
 
-        await update.message.reply_text(  
-            "✅ UID VERIFIED SUCCESSFULLY",  
-            reply_markup=InlineKeyboardMarkup(keyboard)  
-        )  
+        if not text.isdigit() or len(text) != 3:
 
-    else:  
+            await update.message.reply_text(
+                "❌ INVALID PERIOD NUMBER\n\n✅ SEND ONLY 3 DIGITS"
+            )
 
-        await update.message.reply_text(  
-            "❌ ONLY NUMBER ALLOWED"  
-        )  
+            return
 
-    return  
+        prediction_wait.remove(user_id)
 
+        await update.message.reply_text(
+            "📊 MARKET ANALYZING..."
+        )
 
-# PREDICTION SYSTEM  
-if user_id in prediction_wait:  
+        await asyncio.sleep(5)
 
-    if not text.isdigit() or len(text) != 3:  
+        result = random.choice(["BIG", "SMALL"])
 
-        await update.message.reply_text(  
-            "❌ INVALID PERIOD NUMBER\n\n✅ SEND ONLY 3 DIGITS"  
-        )  
+        if result == "BIG":
+            nums = random.sample(range(0, 5), 2)
+        else:
+            nums = random.sample(range(5, 10), 2)
 
-        return  
+        keyboard = [
+            [InlineKeyboardButton("🎯 GET PREDICTION AGAIN", callback_data="get_prediction")],
+            [InlineKeyboardButton("💎 VIP CHANNEL", url=VIP_CHANNEL)],
+            [InlineKeyboardButton("📞 CONTACT SUPPORT", url=SUPPORT_LINK)]
+        ]
 
-    prediction_wait.remove(user_id)  
-
-    await update.message.reply_text(  
-        "📊 MARKET ANALYZING..."  
-    )  
-
-    await asyncio.sleep(5)  
-
-    result = random.choice(["BIG", "SMALL"])  
-
-    # BIG = 0-4  
-    if result == "BIG":  
-
-        nums = random.sample(range(0, 5), 2)  
-
-    # SMALL = 5-9  
-    else:  
-
-        nums = random.sample(range(5, 10), 2)  
-
-    keyboard = [  
-
-        [InlineKeyboardButton("🎯 GET PREDICTION AGAIN", callback_data="get_prediction")],  
-
-        [InlineKeyboardButton("💎 VIP CHANNEL", url=VIP_CHANNEL)],  
-
-        [InlineKeyboardButton("📞 CONTACT SUPPORT", url=SUPPORT_LINK)]  
-
-    ]  
-
-    prediction_text = f"""
-
+        prediction_text = f"""
 ╔════💎 VIP TEHELKA 💎════╗
 
 🕒 PERIOD: {text}
@@ -252,48 +221,40 @@ if user_id in prediction_wait:
 🔥 WINGO 1MIN GAME 🔥
 """
 
-await update.message.reply_text(  
-        prediction_text,  
-        reply_markup=InlineKeyboardMarkup(keyboard)  
-    )  
+        await update.message.reply_text(
+            prediction_text,
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
 
-    return
+        return
 
-=====================================
 
-CHANNEL STICKER
-
-=====================================
+# =====================================
+# SEND STICKER
+# =====================================
 
 async def send_sticker(app, sticker):
 
-await app.bot.send_sticker(  
-    chat_id=CHANNEL_ID,  
-    sticker=sticker  
-)
+    await app.bot.send_sticker(
+        chat_id=CHANNEL_ID,
+        sticker=sticker
+    )
 
-=====================================
 
-CHANNEL PREDICTION
-
-=====================================
+# =====================================
+# CHANNEL PREDICTION
+# =====================================
 
 async def send_prediction(app):
 
-result = random.choice(["BIG", "SMALL"])  
+    result = random.choice(["BIG", "SMALL"])
 
-# BIG = 0-4  
-if result == "BIG":  
+    if result == "BIG":
+        nums = random.sample(range(0, 5), 2)
+    else:
+        nums = random.sample(range(5, 10), 2)
 
-    nums = random.sample(range(0, 5), 2)  
-
-# SMALL = 5-9  
-else:  
-
-    nums = random.sample(range(5, 10), 2)  
-
-text = f"""
-
+    text = f"""
 ╔════💎 VIP TEHELKA 💎════╗
 
 🕒 PERIOD: ***
@@ -307,166 +268,137 @@ text = f"""
 🔥 WINGO 1MIN GAME 🔥
 """
 
-keyboard = [  
+    keyboard = [
+        [InlineKeyboardButton("🔥 REGISTRATION", url=REGISTER_LINK)],
+        [InlineKeyboardButton("💎 VIP CHANNEL", url=VIP_CHANNEL)],
+        [InlineKeyboardButton("📞 CONTACT SUPPORT", url=SUPPORT_LINK)]
+    ]
 
-    [InlineKeyboardButton("🔥 REGISTRATION", url=REGISTER_LINK)],  
+    await app.bot.send_message(
+        chat_id=CHANNEL_ID,
+        text=text,
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
-    [InlineKeyboardButton("💎 VIP CHANNEL", url=VIP_CHANNEL)],  
 
-    [InlineKeyboardButton("📞 CONTACT SUPPORT", url=SUPPORT_LINK)]  
-
-]  
-
-await app.bot.send_message(  
-    chat_id=CHANNEL_ID,  
-    text=text,  
-    reply_markup=InlineKeyboardMarkup(keyboard)  
-)
-
-=====================================
-
-MAIN FUNCTION
-
-=====================================
+# =====================================
+# MAIN FUNCTION
+# =====================================
 
 def main():
 
-app = Application.builder().token(BOT_TOKEN).build()  
+    app = Application.builder().token(BOT_TOKEN).build()
 
-# HANDLERS  
-app.add_handler(CommandHandler("start", start))  
+    app.add_handler(CommandHandler("start", start))
 
-app.add_handler(CallbackQueryHandler(buttons))  
+    app.add_handler(CallbackQueryHandler(buttons))
 
-app.add_handler(  
-    MessageHandler(  
-        filters.TEXT & ~filters.COMMAND,  
-        messages  
-    )  
-)  
+    app.add_handler(
+        MessageHandler(
+            filters.TEXT & ~filters.COMMAND,
+            messages
+        )
+    )
 
-# INDIA TIMEZONE  
-scheduler = AsyncIOScheduler(  
-    timezone=timezone("Asia/Kolkata")  
-)  
+    scheduler = AsyncIOScheduler(
+        timezone=timezone("Asia/Kolkata")
+    )
 
+    # 10 MIN BEFORE
+    scheduler.add_job(
+        send_sticker,
+        "cron",
+        hour="9,11,15,19",
+        minute=50,
+        args=[app, STICKER_10MIN]
+    )
 
-# =====================================  
-# BEFORE START STICKERS  
-# =====================================  
+    # 2 MIN BEFORE
+    scheduler.add_job(
+        send_sticker,
+        "cron",
+        hour="9,11,15,19",
+        minute=58,
+        args=[app, STICKER_2MIN]
+    )
 
-# 10 minute before  
-scheduler.add_job(  
-    send_sticker,  
-    "cron",  
-    hour="9,11,15,19",  
-    minute=50,  
-    args=[app, STICKER_10MIN]  
-)  
+    # 1 MIN BEFORE
+    scheduler.add_job(
+        send_sticker,
+        "cron",
+        hour="9,11,15,19",
+        minute=59,
+        args=[app, STICKER_1MIN]
+    )
 
-# 2 minute before  
-scheduler.add_job(  
-    send_sticker,  
-    "cron",  
-    hour="9,11,15,19",  
-    minute=58,  
-    args=[app, STICKER_2MIN]  
-)  
+    # RUNNING STICKER
+    scheduler.add_job(
+        send_sticker,
+        "cron",
+        hour="10,12,16,20",
+        minute="0-10",
+        second=5,
+        args=[app, RUNNING_STICKER]
+    )
 
-# 1 minute before  
-scheduler.add_job(  
-    send_sticker,  
-    "cron",  
-    hour="9,11,15,19",  
-    minute=59,  
-    args=[app, STICKER_1MIN]  
-)  
+    # PREDICTION
+    scheduler.add_job(
+        send_prediction,
+        "cron",
+        hour="10,12,16,20",
+        minute="0-10",
+        second=10,
+        args=[app]
+    )
 
+    # EXTRA STICKERS
+    scheduler.add_job(
+        send_sticker,
+        "cron",
+        hour="10,12,16,20",
+        minute="2,5,8",
+        second=20,
+        args=[app, EXTRA_STICKER_1]
+    )
 
-# =====================================  
-# RUNNING SESSION  
-# =====================================  
+    scheduler.add_job(
+        send_sticker,
+        "cron",
+        hour="10,12,16,20",
+        minute="3,6,9",
+        second=25,
+        args=[app, EXTRA_STICKER_2]
+    )
 
-# running sticker every minute  
-scheduler.add_job(  
-    send_sticker,  
-    "cron",  
-    hour="10,12,16,20",  
-    minute="0-10",  
-    second=5,  
-    args=[app, RUNNING_STICKER]  
-)  
+    # END SESSION
+    scheduler.add_job(
+        send_sticker,
+        "cron",
+        hour="10,12,16,20",
+        minute=10,
+        second=40,
+        args=[app, END_STICKER_1]
+    )
 
-# prediction every minute  
-scheduler.add_job(  
-    send_prediction,  
-    "cron",  
-    hour="10,12,16,20",  
-    minute="0-10",  
-    second=10,  
-    args=[app]  
-)  
+    scheduler.add_job(
+        send_sticker,
+        "cron",
+        hour="10,12,16,20",
+        minute=10,
+        second=50,
+        args=[app, END_STICKER_2]
+    )
 
+    scheduler.start()
 
-# =====================================  
-# EXTRA PREMIUM STICKERS  
-# =====================================  
+    print("🔥 VIP TEHELKA BOT RUNNING 🔥")
 
-scheduler.add_job(  
-    send_sticker,  
-    "cron",  
-    hour="10,12,16,20",  
-    minute="2,5,8",  
-    second=20,  
-    args=[app, EXTRA_STICKER_1]  
-)  
-
-scheduler.add_job(  
-    send_sticker,  
-    "cron",  
-    hour="10,12,16,20",  
-    minute="3,6,9",  
-    second=25,  
-    args=[app, EXTRA_STICKER_2]  
-)  
-
-
-# =====================================  
-# SESSION END  
-# =====================================  
-
-scheduler.add_job(  
-    send_sticker,  
-    "cron",  
-    hour="10,12,16,20",  
-    minute=10,  
-    second=40,  
-    args=[app, END_STICKER_1]  
-)  
-
-scheduler.add_job(  
-    send_sticker,  
-    "cron",  
-    hour="10,12,16,20",  
-    minute=10,  
-    second=50,  
-    args=[app, END_STICKER_2]  
-)  
+    app.run_polling()
 
 
-# START SCHEDULER  
-scheduler.start()  
+# =====================================
+# RUN BOT
+# =====================================
 
-print("🔥 VIP TEHELKA BOT RUNNING 🔥")  
-
-# START BOT  
-app.run_polling()
-
-=====================================
-
-RUN
-
-=====================================
-
-if name == "main":
-main()
+if __name__ == "__main__":
+    main()

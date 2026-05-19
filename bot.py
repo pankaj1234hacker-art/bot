@@ -440,15 +440,23 @@ def main():
         args=[app, END_STICKER_2]
     )
 
+# TEST CHANNEL
 
-    # START SCHEDULER
-    scheduler.start()
+async def test():
+    await app.bot.send_message(
+        chat_id=CHANNEL_ID,
+        text="🔥 TEST SUCCESS 🔥"
+    )
 
-    print("🔥 VIP TEHELKA BOT RUNNING 🔥")
+app.create_task(test())
 
-    # START BOT
-    app.run_polling()
+# START SCHEDULER
+scheduler.start()
 
+print("🔥 VIP TEHELKA BOT RUNNING 🔥")
+
+# START BOT
+app.run_polling()
 
 # =====================================
 # RUN

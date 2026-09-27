@@ -160,3 +160,353 @@ async def messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if text.isdigit():
 
             uid_wait.remove(user_id)
+
+            keyboard = [
+                [InlineKeyboardButton("🔥 REGISTRATION", url=REGISTER_LINK)],
+                [InlineKeyboardButton("📞 CONTACT SUPPORT", url=SUPPORT_LINK)],
+                [InlineKeyboardButton("💎 VIP CHANNEL", url=VIP_CHANNEL)],
+                [InlineKeyboardButton(
+                    "🎯 GET PREDICTION",
+                    callback_data="get_prediction"
+                )]
+            ]
+
+            await update.message.reply_text(
+                "✅ UID VERIFIED SUCCESSFULLY",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+
+        else:
+
+            await update.message.reply_text(
+                "❌ ONLY NUMBER ALLOWED"
+            )
+
+        return
+
+    # =================================
+    # PREDICTION SYSTEM
+    # =================================
+
+    if user_id in prediction_wait:
+
+        if not text.isdigit() or len(text) != 3:
+
+            await update.message.reply_text(
+                "❌ INVALID PERIOD NUMBER\n\n"
+                "✅ SEND ONLY 3 DIGITS"
+            )
+
+            return
+
+        prediction_wait.remove(user_id)
+
+        await update.message.reply_text(
+            "📊 MARKET ANALYZING..."
+        )
+
+        await asyncio.sleep(5)
+
+        result = random.choice(["BIG", "SMALL"])
+
+        if result == "BIG":
+            nums = random.sample(range(0, 5), 2)
+        else:
+            nums = random.sample(range(5, 10), 2)
+
+        keyboard = [
+            [
+                InlineKeyboardButton(
+                    "🎯 GET PREDICTION AGAIN",
+                    callback_data="get_prediction"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "💎 VIP CHANNEL",
+                    url=VIP_CHANNEL
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "📞 CONTACT SUPPORT",
+                    url=SUPPORT_LINK
+                )
+            ]
+        ]
+
+        prediction_text = f"""
+╔════💎 VIP TEHELKA 💎════╗
+
+🕒 PERIOD: {text}
+
+🎯 RESULT: {result}
+
+🔥 SAFE NUMBERS: {nums[0]} • {nums[1]}
+
+━━━━━━━━━━━━━━━━
+
+🔥 WINGO 1MIN GAME 🔥
+"""
+
+        await update.message.reply_text(
+            prediction_text,
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+
+        return
+
+
+# =====================================
+# SEND STICKER
+# =====================================
+
+async def send_sticker(app, sticker):
+
+    await app.bot.send_sticker(
+        chat_id=CHANNEL_ID,
+        sticker=sticker
+    )
+
+
+# =====================================
+# CHANNEL PREDICTION
+# =====================================
+
+async def send_prediction(app):
+
+    result = random.choice(["BIG", "SMALL"])
+
+    if result == "BIG":
+        nums = random.sample(range(0, 5), 2)
+    else:
+        nums = random.sample(range(5, 10), 2)
+
+    text = f"""
+╔════💎 VIP TEHELKA 💎════╗
+
+🕒 PERIOD: ***
+
+🎯 RESULT: {result}
+
+🔥 SAFE NUMBERS: {nums[0]} • {nums[1]}
+
+━━━━━━━━━━━━━━━━
+
+🔥 WINGO 1MIN GAME 🔥
+"""
+
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "🔥 REGISTRATION",
+                url=REGISTER_LINK
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "💎 VIP CHANNEL",
+                url=VIP_CHANNEL
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "📞 CONTACT SUPPORT",
+                url=SUPPORT_LINK
+            )
+        ]
+    ]
+
+    await app.bot.send_message(
+        chat_id=CHANNEL_ID,
+        text=text,
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+
+# =====================================
+# MAIN FUNCTION
+# =====================================
+
+def main():
+
+    # ---------------------------------
+    # CREATE SCHEDULER
+    # ---------------------------------
+
+    scheduler = AsyncIOScheduler(
+        timezone=timezone("Asia/Kolkata")
+    )
+
+    # ---------------------------------
+    # CREATE POST INIT FUNCTION
+    # ---------------------------------
+    # Scheduler will start only after
+    # Telegram's asyncio event loop starts.
+
+    async def post_init(application):
+
+        scheduler.start()
+
+        print("🔥 VIP TEHELKA BOT RUNNING 🔥")
+        print("🕐 TIMEZONE: Asia/Kolkata")
+        print("📢 CHANNEL: @TEHELKA_VIP_KING")
+        print("✅ SCHEDULER STARTED")
+
+    # ---------------------------------
+    # CREATE APPLICATION
+    # ---------------------------------
+
+    app = (
+        Application.builder()
+        .token(BOT_TOKEN)
+        .post_init(post_init)
+        .build()
+    )
+
+    # ---------------------------------
+    # HANDLERS
+    # ---------------------------------
+
+    app.add_handler(
+        CommandHandler("start", start)
+    )
+
+    app.add_handler(
+        CallbackQueryHandler(buttons)
+    )
+
+    app.add_handler(
+        MessageHandler(
+            filters.TEXT & ~filters.COMMAND,
+            messages
+        )
+    )
+
+    # =================================
+    # SCHEDULE: 10 MIN BEFORE
+    # =================================
+
+    scheduler.add_job(
+        send_sticker,
+        "cron",
+        hour="9,11,15,19",
+        minute=50,
+        args=[app, STICKER_10MIN]
+    )
+
+    # =================================
+    # SCHEDULE: 2 MIN BEFORE
+    # =================================
+
+    scheduler.add_job(
+        send_sticker,
+        "cron",
+        hour="9,11,15,19",
+        minute=58,
+        args=[app, STICKER_2MIN]
+    )
+
+    # =================================
+    # SCHEDULE: 1 MIN BEFORE
+    # =================================
+
+    scheduler.add_job(
+        send_sticker,
+        "cron",
+        hour="9,11,15,19",
+        minute=59,
+        args=[app, STICKER_1MIN]
+    )
+
+    # =================================
+    # RUNNING STICKER
+    # =================================
+
+    scheduler.add_job(
+        send_sticker,
+        "cron",
+        hour="10,12,16,20",
+        minute="0-10",
+        second=5,
+        args=[app, RUNNING_STICKER]
+    )
+
+    # =================================
+    # PREDICTION
+    # =================================
+
+    scheduler.add_job(
+        send_prediction,
+        "cron",
+        hour="10,12,16,20",
+        minute="0-10",
+        second=10,
+        args=[app]
+    )
+
+    # =================================
+    # EXTRA STICKER 1
+    # =================================
+
+    scheduler.add_job(
+        send_sticker,
+        "cron",
+        hour="10,12,16,20",
+        minute="2,5,8",
+        second=20,
+        args=[app, EXTRA_STICKER_1]
+    )
+
+    # =================================
+    # EXTRA STICKER 2
+    # =================================
+
+    scheduler.add_job(
+        send_sticker,
+        "cron",
+        hour="10,12,16,20",
+        minute="3,6,9",
+        second=25,
+        args=[app, EXTRA_STICKER_2]
+    )
+
+    # =================================
+    # END SESSION STICKER 1
+    # =================================
+
+    scheduler.add_job(
+        send_sticker,
+        "cron",
+        hour="10,12,16,20",
+        minute=10,
+        second=40,
+        args=[app, END_STICKER_1]
+    )
+
+    # =================================
+    # END SESSION STICKER 2
+    # =================================
+
+    scheduler.add_job(
+        send_sticker,
+        "cron",
+        hour="10,12,16,20",
+        minute=10,
+        second=50,
+        args=[app, END_STICKER_2]
+    )
+
+    # =================================
+    # START BOT
+    # =================================
+
+    app.run_polling()
+
+
+# =====================================
+# RUN BOT
+# =====================================
+
+if __name__ == "__main__":
+    main()

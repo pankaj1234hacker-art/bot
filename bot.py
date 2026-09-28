@@ -1002,3 +1002,4 @@ def add_session_jobs(
             timezone=TIMEZONE
         ),
         id=f"session:{hour:02d}{minute:02d}:end2"
+            )

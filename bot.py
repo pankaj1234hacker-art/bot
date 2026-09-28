@@ -993,7 +993,7 @@ def add_session_jobs(
         ]
     )
 
-    scheduler.add_job(
+        scheduler.add_job(
         session_sticker_job,
         CronTrigger(
             hour=hh,
@@ -1001,5 +1001,246 @@ def add_session_jobs(
             second=50,
             timezone=TIMEZONE
         ),
-        id=f"session:{hour:02d}{minute:02d}:end2"
+        id=f"session:{hour:02d}{minute:02d}:end2",
+        replace_existing=True,
+        args=[
+            app,
+            END_STICKER_2
+        ]
+    )
+
+
+# ============================================================
+# START COMMAND
+# ============================================================
+
+async def start(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+
+    user = update.effective_user
+
+    if user:
+
+        try:
+
+            conn = db()
+
+            conn.execute(
+                """
+                INSERT INTO subscribers
+                (
+                    user_id,
+                    first_name,
+                    username,
+                    joined_at,
+                    blocked
+                )
+                VALUES (?, ?, ?, ?, 0)
+                ON CONFLICT(user_id)
+                DO UPDATE SET
+                    first_name=excluded.first_name,
+                    username=excluded.username,
+                    blocked=0
+                """,
+                (
+                    user.id,
+                    user.first_name or "",
+                    user.username or "",
+                    now_iso()
+                )
             )
+
+            conn.commit()
+            conn.close()
+
+        except Exception:
+
+            log.exception(
+                "Failed to save subscriber"
+            )
+
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "VIP CHANNEL",
+                url=VIP_CHANNEL
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "CONTACT SUPPORT",
+                url=SUPPORT_LINK
+            )
+        ]
+    ]
+
+    if update.message:
+
+        await update.message.reply_text(
+            "WELCOME TO VIP TEHELKA\n\n"
+            "Daily session updates ke liye "
+            "bot ko connected rakho.",
+            reply_markup=InlineKeyboardMarkup(
+                keyboard
+            )
+        )
+
+
+# ============================================================
+# APPLICATION STARTUP
+# ============================================================
+
+async def post_init(
+    application: Application
+):
+
+    print("========================================")
+    print("VIP TEHELKA BOT RUNNING")
+    print("TIMEZONE: Asia/Kolkata")
+    print("CHANNEL:", CHANNEL_ID)
+    print("========================================")
+
+    # Start scheduler
+    if not scheduler.running:
+
+        scheduler.start()
+
+    print("SCHEDULER STARTED")
+
+    # --------------------------------------------------------
+    # LOAD DATABASE MESSAGE JOBS
+    # --------------------------------------------------------
+
+    try:
+
+        conn = db()
+
+        rows = conn.execute(
+            """
+            SELECT *
+            FROM messages
+            WHERE enabled=1
+            """
+        ).fetchall()
+
+        conn.close()
+
+        for row in rows:
+
+            try:
+
+                add_db_message_jobs(
+                    application,
+                    row
+                )
+
+            except Exception:
+
+                log.exception(
+                    "Failed to load message job: %s",
+                    row["id"]
+                )
+
+    except Exception:
+
+        log.exception(
+            "Failed to load database jobs"
+        )
+
+    # --------------------------------------------------------
+    # LOAD SESSION JOBS
+    # --------------------------------------------------------
+
+    try:
+
+        conn = db()
+
+        sessions = conn.execute(
+            """
+            SELECT *
+            FROM sessions
+            WHERE enabled=1
+            ORDER BY hour, minute
+            """
+        ).fetchall()
+
+        conn.close()
+
+        for session in sessions:
+
+            try:
+
+                add_session_jobs(
+                    application,
+                    session["hour"],
+                    session["minute"],
+                    session["name"]
+                )
+
+            except Exception:
+
+                log.exception(
+                    "Failed to create session jobs: %s",
+                    session["name"]
+                )
+
+    except Exception:
+
+        log.exception(
+            "Failed to load session jobs"
+        )
+
+    print(
+        "ALL SESSION JOBS LOADED"
+    )
+
+
+# ============================================================
+# MAIN
+# ============================================================
+
+def main():
+
+    # Make sure database exists
+    init_db()
+
+    if not BOT_TOKEN:
+
+        raise RuntimeError(
+            "BOT_TOKEN is not set. "
+            "Run: export BOT_TOKEN='YOUR_BOT_TOKEN'"
+        )
+
+    app = (
+        Application.builder()
+        .token(BOT_TOKEN)
+        .post_init(post_init)
+        .build()
+    )
+
+    # /start
+    app.add_handler(
+        CommandHandler(
+            "start",
+            start
+        )
+    )
+
+    print(
+        "Starting Telegram polling..."
+    )
+
+    app.run_polling(
+        drop_pending_updates=True
+    )
+
+
+# ============================================================
+# RUN
+# ============================================================
+
+if __name__ == "__main__":
+
+    main()

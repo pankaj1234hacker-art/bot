@@ -44,12 +44,11 @@ DB_PATH = os.getenv(
 )
 
 VIP_CHANNEL = "https://t.me/TEHELKA_VIP_KING"
-
 SUPPORT_LINK = "https://t.me/Next_level_user"
 
 
 # ============================================================
-# OLD STICKER IDs
+# STICKER IDS
 # ============================================================
 
 STICKER_10MIN = (
@@ -108,7 +107,11 @@ def db():
 
 
 def now_iso():
-    return datetime.now(TIMEZONE).isoformat(timespec="seconds")
+    return datetime.now(
+        TIMEZONE
+    ).isoformat(
+        timespec="seconds"
+    )
 
 
 def init_db():
@@ -172,7 +175,10 @@ def init_db():
         )
     """)
 
-    # Owner automatically becomes Full Admin
+    # --------------------------------------------------------
+    # OWNER ADMIN
+    # --------------------------------------------------------
+
     cur.execute(
         """
         INSERT OR IGNORE INTO admins
@@ -186,7 +192,10 @@ def init_db():
         )
     )
 
-    # Default sessions
+    # --------------------------------------------------------
+    # DEFAULT SESSIONS
+    # --------------------------------------------------------
+
     default_sessions = [
         ("Session 1", 10, 0),
         ("Session 2", 12, 0),
@@ -204,7 +213,10 @@ def init_db():
             FROM sessions
             WHERE hour=? AND minute=?
             """,
-            (hour, minute)
+            (
+                hour,
+                minute
+            )
         )
 
         if not cur.fetchone():
@@ -215,7 +227,11 @@ def init_db():
                 (name, hour, minute)
                 VALUES (?, ?, ?)
                 """,
-                (name, hour, minute)
+                (
+                    name,
+                    hour,
+                    minute
+                )
             )
 
     conn.commit()
@@ -223,7 +239,7 @@ def init_db():
 
 
 # ============================================================
-# ADMIN CHECK
+# ADMIN
 # ============================================================
 
 def is_admin(user_id: int):
@@ -239,7 +255,9 @@ def is_admin(user_id: int):
         FROM admins
         WHERE user_id=?
         """,
-        (user_id,)
+        (
+            user_id,
+        )
     ).fetchone()
 
     conn.close()
@@ -259,7 +277,13 @@ def log_action(
     conn.execute(
         """
         INSERT INTO logs
-        (message_id, action, detail, user_id, created_at)
+        (
+            message_id,
+            action,
+            detail,
+            user_id,
+            created_at
+        )
         VALUES (?, ?, ?, ?, ?)
         """,
         (
@@ -273,6 +297,54 @@ def log_action(
 
     conn.commit()
     conn.close()
+
+
+# ============================================================
+# SUBSCRIBER
+# ============================================================
+
+def save_subscriber(user):
+
+    if not user:
+        return
+
+    try:
+
+        conn = db()
+
+        conn.execute(
+            """
+            INSERT INTO subscribers
+            (
+                user_id,
+                first_name,
+                username,
+                joined_at,
+                blocked
+            )
+            VALUES (?, ?, ?, ?, 0)
+            ON CONFLICT(user_id)
+            DO UPDATE SET
+                first_name=excluded.first_name,
+                username=excluded.username,
+                blocked=0
+            """,
+            (
+                user.id,
+                user.first_name or "",
+                user.username or "",
+                now_iso()
+            )
+        )
+
+        conn.commit()
+        conn.close()
+
+    except Exception:
+
+        log.exception(
+            "Subscriber save failed"
+        )
 
 
 # ============================================================
@@ -291,7 +363,10 @@ def parse_buttons(raw):
         if "|" not in line:
             continue
 
-        text, url = line.split("|", 1)
+        text, url = line.split(
+            "|",
+            1
+        )
 
         text = text.strip()
         url = url.strip()
@@ -308,10 +383,12 @@ def parse_buttons(raw):
         ):
             continue
 
-        result.append([
-            text,
-            url
-        ])
+        result.append(
+            [
+                text,
+                url
+            ]
+        )
 
     return result
 
@@ -329,18 +406,22 @@ def markup_from_json(raw):
 
         for row in buttons:
 
-            rows.append([
-                InlineKeyboardButton(
-                    str(button[0]),
-                    url=str(button[1])
-                )
-                for button in row
-            ])
+            rows.append(
+                [
+                    InlineKeyboardButton(
+                        str(button[0]),
+                        url=str(button[1])
+                    )
+                    for button in row
+                ]
+            )
 
         if not rows:
             return None
 
-        return InlineKeyboardMarkup(rows)
+        return InlineKeyboardMarkup(
+            rows
+        )
 
     except Exception:
 
@@ -348,7 +429,7 @@ def markup_from_json(raw):
 
 
 # ============================================================
-# SEND PAYLOAD
+# PAYLOAD
 # ============================================================
 
 async def send_payload(
@@ -360,7 +441,9 @@ async def send_payload(
     buttons_json=None
 ):
 
-    markup = markup_from_json(buttons_json)
+    markup = markup_from_json(
+        buttons_json
+    )
 
     if content_type == "text":
 
@@ -416,7 +499,10 @@ async def send_payload(
 # BROADCAST
 # ============================================================
 
-async def broadcast_message(bot, row):
+async def broadcast_message(
+    bot,
+    row
+):
 
     conn = db()
 
@@ -452,7 +538,14 @@ async def broadcast_message(bot, row):
 
             failed += 1
 
-            if "blocked" in str(exc).lower():
+            error_text = str(exc).lower()
+
+            if (
+                "blocked"
+                in error_text
+                or "deactivated"
+                in error_text
+            ):
 
                 conn = db()
 
@@ -462,7 +555,9 @@ async def broadcast_message(bot, row):
                     SET blocked=1
                     WHERE user_id=?
                     """,
-                    (user["user_id"],)
+                    (
+                        user["user_id"],
+                    )
                 )
 
                 conn.commit()
@@ -482,24 +577,40 @@ scheduler = AsyncIOScheduler(
 JOB_PREFIX = "dbmsg:"
 
 
-def remove_message_jobs(message_id):
+def remove_message_jobs(
+    message_id
+):
 
-    prefix = f"{JOB_PREFIX}{message_id}:"
+    prefix = (
+        f"{JOB_PREFIX}{message_id}:"
+    )
 
-    for job in list(scheduler.get_jobs()):
+    for job in list(
+        scheduler.get_jobs()
+    ):
 
-        if job.id.startswith(prefix):
+        if job.id.startswith(
+            prefix
+        ):
 
             try:
-                scheduler.remove_job(job.id)
+
+                scheduler.remove_job(
+                    job.id
+                )
 
             except Exception:
                 pass
 
 
-def add_db_message_jobs(app, row):
+def add_db_message_jobs(
+    app,
+    row
+):
 
-    remove_message_jobs(row["id"])
+    remove_message_jobs(
+        row["id"]
+    )
 
     if not row["enabled"]:
         return
@@ -516,31 +627,53 @@ def add_db_message_jobs(app, row):
 
     kind = row["kind"]
 
-    # Quick send doesn't need a scheduler job
     if kind == "quick":
         return
 
-    # One-time schedule
+    # --------------------------------------------------------
+    # ONE TIME MESSAGE
+    # --------------------------------------------------------
+
     if kind == "one_time":
 
         try:
 
             dt = datetime.fromisoformat(
                 schedule["datetime"]
-            ).astimezone(TIMEZONE)
+            )
+
+            if dt.tzinfo is None:
+
+                dt = dt.replace(
+                    tzinfo=TIMEZONE
+                )
+
+            else:
+
+                dt = dt.astimezone(
+                    TIMEZONE
+                )
 
         except Exception:
 
             return
 
-        if dt > datetime.now(TIMEZONE):
+        if (
+            dt
+            > datetime.now(
+                TIMEZONE
+            )
+        ):
 
             scheduler.add_job(
                 send_db_message_job,
                 DateTrigger(
                     run_date=dt
                 ),
-                id=f"{JOB_PREFIX}{row['id']}:once",
+                id=(
+                    f"{JOB_PREFIX}"
+                    f"{row['id']}:once"
+                ),
                 replace_existing=True,
                 args=[
                     app,
@@ -550,7 +683,10 @@ def add_db_message_jobs(app, row):
 
         return
 
-    # Recurring schedule
+    # --------------------------------------------------------
+    # RECURRING MESSAGE
+    # --------------------------------------------------------
+
     times = schedule.get(
         "times",
         []
@@ -572,9 +708,13 @@ def add_db_message_jobs(app, row):
     if not times:
         return
 
-    day_expr = ",".join(days)
+    day_expr = ",".join(
+        days
+    )
 
-    for index, time_value in enumerate(times):
+    for index, time_value in enumerate(
+        times
+    ):
 
         try:
 
@@ -595,7 +735,10 @@ def add_db_message_jobs(app, row):
                 minute=minute,
                 timezone=TIMEZONE
             ),
-            id=f"{JOB_PREFIX}{row['id']}:{index}",
+            id=(
+                f"{JOB_PREFIX}"
+                f"{row['id']}:{index}"
+            ),
             replace_existing=True,
             args=[
                 app,
@@ -617,7 +760,9 @@ async def send_db_message_job(
         FROM messages
         WHERE id=?
         """,
-        (message_id,)
+        (
+            message_id,
+        )
     ).fetchone()
 
     conn.close()
@@ -634,20 +779,25 @@ async def send_db_message_job(
             row["schedule_json"] or "{}"
         )
 
-        # Broadcast to bot subscribers
         if schedule.get(
             "broadcast",
             False
         ):
 
-            sent, failed = await broadcast_message(
-                app.bot,
-                row
+            sent, failed = (
+                await broadcast_message(
+                    app.bot,
+                    row
+                )
             )
 
             log_action(
                 "sent",
-                f"broadcast sent={sent} failed={failed}",
+                (
+                    f"broadcast "
+                    f"sent={sent} "
+                    f"failed={failed}"
+                ),
                 message_id=message_id
             )
 
@@ -671,8 +821,7 @@ async def send_db_message_job(
     except Exception as exc:
 
         log.exception(
-            "Scheduled send failed: %s",
-            exc
+            "Scheduled send failed"
         )
 
         log_action(
@@ -747,7 +896,7 @@ async def session_text_job(
 
 
 # ============================================================
-# SESSION AUTOMATIC SYSTEM
+# SESSION SYSTEM
 # ============================================================
 
 def add_session_jobs(
@@ -766,29 +915,35 @@ def add_session_jobs(
     # 30 MINUTES BEFORE
     # --------------------------------------------------------
 
-    reminder_total = base - 30
-
-    reminder_total %= (
+    total = (
+        base - 30
+    ) % (
         24 * 60
     )
 
-    reminder_hour, reminder_minute = divmod(
-        reminder_total,
+    hh, mm = divmod(
+        total,
         60
     )
 
     scheduler.add_job(
         session_text_job,
         CronTrigger(
-            hour=reminder_hour,
-            minute=reminder_minute,
+            hour=hh,
+            minute=mm,
             timezone=TIMEZONE
         ),
-        id=f"session:{hour:02d}{minute:02d}:r30",
+        id=(
+            f"session:"
+            f"{hour:02d}{minute:02d}:r30"
+        ),
         replace_existing=True,
         args=[
             app,
-            f"GET READY\n\n30 minutes left for {name}."
+            (
+                "GET READY\n\n"
+                f"30 minutes left for {name}."
+            )
         ]
     )
 
@@ -814,7 +969,10 @@ def add_session_jobs(
             minute=mm,
             timezone=TIMEZONE
         ),
-        id=f"session:{hour:02d}{minute:02d}:s10",
+        id=(
+            f"session:"
+            f"{hour:02d}{minute:02d}:s10"
+        ),
         replace_existing=True,
         args=[
             app,
@@ -844,7 +1002,10 @@ def add_session_jobs(
             minute=mm,
             timezone=TIMEZONE
         ),
-        id=f"session:{hour:02d}{minute:02d}:s2",
+        id=(
+            f"session:"
+            f"{hour:02d}{minute:02d}:s2"
+        ),
         replace_existing=True,
         args=[
             app,
@@ -874,7 +1035,10 @@ def add_session_jobs(
             minute=mm,
             timezone=TIMEZONE
         ),
-        id=f"session:{hour:02d}{minute:02d}:s1",
+        id=(
+            f"session:"
+            f"{hour:02d}{minute:02d}:s1"
+        ),
         replace_existing=True,
         args=[
             app,
@@ -883,8 +1047,7 @@ def add_session_jobs(
     )
 
     # --------------------------------------------------------
-    # RUNNING STICKER
-    # 10 minutes
+    # RUNNING STICKERS
     # --------------------------------------------------------
 
     for i in range(10):
@@ -908,7 +1071,10 @@ def add_session_jobs(
                 second=5,
                 timezone=TIMEZONE
             ),
-            id=f"session:{hour:02d}{minute:02d}:run{i}",
+            id=(
+                f"session:"
+                f"{hour:02d}{minute:02d}:run{i}"
+            ),
             replace_existing=True,
             args=[
                 app,
@@ -916,7 +1082,10 @@ def add_session_jobs(
             ]
         )
 
-        # Extra sticker 1
+        # ----------------------------------------------------
+        # EXTRA STICKER 1
+        # ----------------------------------------------------
+
         if i in (
             2,
             5,
@@ -931,7 +1100,10 @@ def add_session_jobs(
                     second=20,
                     timezone=TIMEZONE
                 ),
-                id=f"session:{hour:02d}{minute:02d}:x1{i}",
+                id=(
+                    f"session:"
+                    f"{hour:02d}{minute:02d}:x1{i}"
+                ),
                 replace_existing=True,
                 args=[
                     app,
@@ -939,7 +1111,10 @@ def add_session_jobs(
                 ]
             )
 
-        # Extra sticker 2
+        # ----------------------------------------------------
+        # EXTRA STICKER 2
+        # ----------------------------------------------------
+
         if i in (
             3,
             6,
@@ -954,7 +1129,10 @@ def add_session_jobs(
                     second=25,
                     timezone=TIMEZONE
                 ),
-                id=f"session:{hour:02d}{minute:02d}:x2{i}",
+                id=(
+                    f"session:"
+                    f"{hour:02d}{minute:02d}:x2{i}"
+                ),
                 replace_existing=True,
                 args=[
                     app,
@@ -985,7 +1163,10 @@ def add_session_jobs(
             second=40,
             timezone=TIMEZONE
         ),
-        id=f"session:{hour:02d}{minute:02d}:end1",
+        id=(
+            f"session:"
+            f"{hour:02d}{minute:02d}:end1"
+        ),
         replace_existing=True,
         args=[
             app,
@@ -993,7 +1174,7 @@ def add_session_jobs(
         ]
     )
 
-        scheduler.add_job(
+    scheduler.add_job(
         session_sticker_job,
         CronTrigger(
             hour=hh,
@@ -1001,7 +1182,10 @@ def add_session_jobs(
             second=50,
             timezone=TIMEZONE
         ),
-        id=f"session:{hour:02d}{minute:02d}:end2",
+        id=(
+            f"session:"
+            f"{hour:02d}{minute:02d}:end2"
+        ),
         replace_existing=True,
         args=[
             app,
@@ -1011,7 +1195,7 @@ def add_session_jobs(
 
 
 # ============================================================
-# START COMMAND
+# /START
 # ============================================================
 
 async def start(
@@ -1021,45 +1205,9 @@ async def start(
 
     user = update.effective_user
 
-    if user:
-
-        try:
-
-            conn = db()
-
-            conn.execute(
-                """
-                INSERT INTO subscribers
-                (
-                    user_id,
-                    first_name,
-                    username,
-                    joined_at,
-                    blocked
-                )
-                VALUES (?, ?, ?, ?, 0)
-                ON CONFLICT(user_id)
-                DO UPDATE SET
-                    first_name=excluded.first_name,
-                    username=excluded.username,
-                    blocked=0
-                """,
-                (
-                    user.id,
-                    user.first_name or "",
-                    user.username or "",
-                    now_iso()
-                )
-            )
-
-            conn.commit()
-            conn.close()
-
-        except Exception:
-
-            log.exception(
-                "Failed to save subscriber"
-            )
+    save_subscriber(
+        user
+    )
 
     keyboard = [
         [
@@ -1079,9 +1227,11 @@ async def start(
     if update.message:
 
         await update.message.reply_text(
-            "WELCOME TO VIP TEHELKA\n\n"
-            "Daily session updates ke liye "
-            "bot ko connected rakho.",
+            (
+                "WELCOME TO VIP TEHELKA\n\n"
+                "You are connected successfully.\n\n"
+                "Use the buttons below."
+            ),
             reply_markup=InlineKeyboardMarkup(
                 keyboard
             )
@@ -1089,28 +1239,70 @@ async def start(
 
 
 # ============================================================
-# APPLICATION STARTUP
+# CALLBACK HANDLER
+# ============================================================
+
+async def button_handler(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+
+    query = update.callback_query
+
+    if query:
+
+        await query.answer()
+
+
+# ============================================================
+# TEXT HANDLER
+# ============================================================
+
+async def text_handler(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+
+    user = update.effective_user
+
+    if user:
+
+        save_subscriber(
+            user
+        )
+
+
+# ============================================================
+# POST INIT
 # ============================================================
 
 async def post_init(
     application: Application
 ):
 
-    print("========================================")
-    print("VIP TEHELKA BOT RUNNING")
-    print("TIMEZONE: Asia/Kolkata")
-    print("CHANNEL:", CHANNEL_ID)
-    print("========================================")
+    print(
+        "========================================"
+    )
 
-    # Start scheduler
-    if not scheduler.running:
+    print(
+        "VIP TEHELKA BOT RUNNING"
+    )
 
-        scheduler.start()
+    print(
+        "TIMEZONE: Asia/Kolkata"
+    )
 
-    print("SCHEDULER STARTED")
+    print(
+        "CHANNEL:",
+        CHANNEL_ID
+    )
+
+    print(
+        "========================================"
+    )
 
     # --------------------------------------------------------
-    # LOAD DATABASE MESSAGE JOBS
+    # DATABASE JOBS
     # --------------------------------------------------------
 
     try:
@@ -1139,18 +1331,17 @@ async def post_init(
             except Exception:
 
                 log.exception(
-                    "Failed to load message job: %s",
-                    row["id"]
+                    "Failed loading message job"
                 )
 
     except Exception:
 
         log.exception(
-            "Failed to load database jobs"
+            "Failed loading DB jobs"
         )
 
     # --------------------------------------------------------
-    # LOAD SESSION JOBS
+    # SESSION JOBS
     # --------------------------------------------------------
 
     try:
@@ -1182,18 +1373,44 @@ async def post_init(
             except Exception:
 
                 log.exception(
-                    "Failed to create session jobs: %s",
-                    session["name"]
+                    "Session job failed"
                 )
 
     except Exception:
 
         log.exception(
-            "Failed to load session jobs"
+            "Failed loading sessions"
         )
+
+    # --------------------------------------------------------
+    # START SCHEDULER
+    # --------------------------------------------------------
+
+    if not scheduler.running:
+
+        scheduler.start()
+
+    print(
+        "SCHEDULER STARTED"
+    )
 
     print(
         "ALL SESSION JOBS LOADED"
+    )
+
+
+# ============================================================
+# ERROR HANDLER
+# ============================================================
+
+async def error_handler(
+    update: object,
+    context: ContextTypes.DEFAULT_TYPE
+):
+
+    log.exception(
+        "Telegram update error",
+        exc_info=context.error
     )
 
 
@@ -1203,15 +1420,13 @@ async def post_init(
 
 def main():
 
-    # Make sure database exists
-    init_db()
-
     if not BOT_TOKEN:
 
         raise RuntimeError(
-            "BOT_TOKEN is not set. "
-            "Run: export BOT_TOKEN='YOUR_BOT_TOKEN'"
+            "BOT_TOKEN is not set."
         )
+
+    init_db()
 
     app = (
         Application.builder()
@@ -1220,12 +1435,45 @@ def main():
         .build()
     )
 
-    # /start
+    # --------------------------------------------------------
+    # COMMANDS
+    # --------------------------------------------------------
+
     app.add_handler(
         CommandHandler(
             "start",
             start
         )
+    )
+
+    # --------------------------------------------------------
+    # CALLBACKS
+    # --------------------------------------------------------
+
+    app.add_handler(
+        CallbackQueryHandler(
+            button_handler
+        )
+    )
+
+    # --------------------------------------------------------
+    # TEXT
+    # --------------------------------------------------------
+
+    app.add_handler(
+        MessageHandler(
+            filters.TEXT
+            & ~filters.COMMAND,
+            text_handler
+        )
+    )
+
+    # --------------------------------------------------------
+    # ERROR
+    # --------------------------------------------------------
+
+    app.add_error_handler(
+        error_handler
     )
 
     print(
